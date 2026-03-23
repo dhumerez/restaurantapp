@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+frontend/dist/
+
+# Environment secrets — NEVER commit
+.env
+backend/.env
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Playwright artifacts
+e2e/test-results/
+e2e/playwright-report/
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Claude internal
+.claude/
