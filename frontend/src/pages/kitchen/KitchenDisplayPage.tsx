@@ -106,57 +106,58 @@ export function KitchenDisplayPage() {
       </audio>
 
       {/* Header */}
-      <div className="bg-surface-1 border-b border-surface-border px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2.5">
+      <div className="bg-surface-1 border-b border-surface-border px-4 md:px-6 py-3 md:py-4 flex items-center justify-between">
+        <div className="flex items-center gap-2 md:gap-4">
+          <div className="flex items-center gap-2 md:gap-2.5">
             <div className="w-7 h-7 rounded-lg bg-primary-500 flex items-center justify-center shrink-0">
               <svg className="w-4 h-4 text-surface-0" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-.293.707L13 10.414V15a1 1 0 01-.553.894l-4 2A1 1 0 017 17v-6.586L3.293 6.707A1 1 0 013 6V4z"/>
               </svg>
             </div>
-            <span className="text-lg font-semibold text-ink-primary tracking-wide">Pantalla de Cocina</span>
+            <span className="text-base md:text-lg font-semibold text-ink-primary tracking-wide hidden sm:block">Pantalla de Cocina</span>
+            <span className="text-base font-semibold text-ink-primary tracking-wide sm:hidden">Cocina</span>
           </div>
-          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-2 border border-surface-border">
+          <div className="flex items-center gap-1.5 px-2 md:px-3 py-1 rounded-full bg-surface-2 border border-surface-border">
             <span className={`w-2 h-2 rounded-full ${orders.length > 0 ? "bg-amber-400 animate-pulse" : "bg-emerald-400"}`} />
-            <span className="text-xs text-ink-secondary">
-              {orders.length} pedido{orders.length !== 1 ? "s" : ""} activo{orders.length !== 1 ? "s" : ""}
+            <span className="text-[10px] md:text-xs text-ink-secondary">
+              {orders.length} pedido{orders.length !== 1 ? "s" : ""}
             </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 md:gap-3">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-full bg-orange-500/15 border border-orange-500/30 flex items-center justify-center text-xs font-semibold text-orange-400">
-              {user?.name.charAt(0).toUpperCase()}
+              {user?.name?.charAt(0)?.toUpperCase() ?? "?"}
             </div>
-            <span className="text-sm text-ink-secondary">{user?.name}</span>
+            <span className="text-sm text-ink-secondary hidden sm:block">{user?.name}</span>
           </div>
           <button
             onClick={async () => {
               await logout();
-              window.location.href = "/login";
+              window.location.href = import.meta.env.BASE_URL + "login";
             }}
-            className="px-3 py-1.5 text-xs font-medium text-ink-muted hover:text-red-400 hover:bg-red-500/8 rounded-lg transition-all"
+            className="px-2 md:px-3 py-1.5 text-xs font-medium text-ink-muted hover:text-red-400 hover:bg-red-500/8 rounded-lg transition-all min-h-[2.25rem]"
           >
-            Cerrar sesión
+            Salir
           </button>
         </div>
       </div>
 
       {/* Orders grid */}
-      <div className="p-5">
+      <div className="p-3 md:p-5">
         {orders.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-[70vh] text-center">
-            <div className="w-20 h-20 rounded-2xl bg-surface-1 border border-surface-border flex items-center justify-center mb-5">
-              <svg className="w-10 h-10 text-ink-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-surface-1 border border-surface-border flex items-center justify-center mb-4 md:mb-5">
+              <svg className="w-8 h-8 md:w-10 md:h-10 text-ink-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
             </div>
-            <p className="text-xl font-semibold text-ink-secondary">Sin pedidos activos</p>
-            <p className="text-sm text-ink-muted mt-2">Los nuevos pedidos aparecerán aquí automáticamente</p>
+            <p className="text-lg md:text-xl font-semibold text-ink-secondary">Sin pedidos activos</p>
+            <p className="text-xs md:text-sm text-ink-muted mt-2">Los nuevos pedidos aparecerán aquí automáticamente</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
             {orders.map((order) => (
               <OrderTicket
                 key={order.id}
@@ -201,13 +202,13 @@ function OrderTicket({
   return (
     <div className={`bg-surface-1 rounded-2xl border-2 ${border} overflow-hidden flex flex-col`}>
       {/* Ticket header */}
-      <div className={`px-4 py-3 ${headerBg} flex items-center justify-between`}>
+      <div className={`px-3 md:px-4 py-2.5 md:py-3 ${headerBg} flex items-center justify-between`}>
         <div>
-          <span className="text-xl font-bold text-ink-primary font-mono tabular-nums">
+          <span className="text-lg md:text-xl font-bold text-ink-primary font-mono tabular-nums">
             Mesa {order.table?.number ?? "?"}
           </span>
           {order.waiter?.name && (
-            <span className="text-xs text-ink-muted ml-2">{order.waiter.name}</span>
+            <span className="text-xs text-ink-muted ml-2 hidden sm:inline">{order.waiter.name}</span>
           )}
         </div>
         <span className={`text-xs font-medium px-2 py-1 rounded-lg ${timeColors[urgency]}`}>
@@ -216,7 +217,7 @@ function OrderTicket({
       </div>
 
       {/* Items */}
-      <div className="p-3 space-y-1.5 flex-1">
+      <div className="p-2 md:p-3 space-y-1 md:space-y-1.5 flex-1">
         {order.items.map((item) => (
           <KitchenItem key={item.id} item={item} onUpdateStatus={onUpdateItem} />
         ))}
@@ -224,7 +225,7 @@ function OrderTicket({
 
       {/* Notes */}
       {order.notes && (
-        <div className="px-3 pb-2">
+        <div className="px-2 md:px-3 pb-2">
           <div className="flex items-start gap-2 text-xs text-amber-400 bg-amber-500/8 border border-amber-500/15 px-3 py-2 rounded-lg">
             <svg className="w-3.5 h-3.5 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -236,10 +237,10 @@ function OrderTicket({
 
       {/* Mark served */}
       {allReady && (
-        <div className="p-3 border-t border-surface-border">
+        <div className="p-2 md:p-3 border-t border-surface-border">
           <button
             onClick={onMarkServed}
-            className="w-full py-2.5 bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30
+            className="w-full py-3 md:py-2.5 bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30
               text-emerald-400 rounded-xl text-sm font-medium transition-all active:scale-[0.98]"
           >
             Marcar pedido como servido
@@ -291,11 +292,11 @@ function KitchenItem({
   return (
     <div className={`flex items-center gap-2 p-2 rounded-lg ${isCancelled ? "opacity-40" : "hover:bg-surface-2/40"} transition-colors`}>
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-1.5 md:gap-2 flex-wrap">
           <span className={`text-sm font-medium ${isCancelled ? "line-through text-ink-muted" : "text-ink-primary"}`}>
             <span className="text-primary-400 font-semibold">{item.quantity}×</span> {item.itemName}
           </span>
-          <span className={`text-xs px-1.5 py-0.5 rounded-full border capitalize ${statusStyles[item.status] ?? statusStyles.pending}`}>
+          <span className={`text-[10px] md:text-xs px-1.5 py-0.5 rounded-full border capitalize ${statusStyles[item.status] ?? statusStyles.pending}`}>
             {itemEstado[item.status] ?? item.status}
           </span>
         </div>
@@ -306,7 +307,7 @@ function KitchenItem({
       {next && !isCancelled && (
         <button
           onClick={() => onUpdateStatus(item.id, next)}
-          className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-all shrink-0 ${buttonStyles[next]}`}
+          className={`px-3 py-1.5 md:px-2.5 md:py-1 rounded-lg text-xs font-medium border transition-all shrink-0 min-h-[2rem] ${buttonStyles[next]}`}
         >
           {buttonLabels[next]}
         </button>

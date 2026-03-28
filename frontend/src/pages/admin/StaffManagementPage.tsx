@@ -75,11 +75,14 @@ export function StaffManagementPage() {
     kitchen: "bg-orange-500/10 text-orange-400 border-orange-500/20",
   };
 
+  const roleName = (role: string) =>
+    role === "waiter" ? "Mesero" : role === "kitchen" ? "Cocina" : "Admin";
+
   return (
     <div className="flex-1 bg-surface-0">
       <Header title="Gestión de Personal" />
-      <div className="p-6 max-w-5xl">
-        <div className="flex justify-between items-center mb-5">
+      <div className="p-4 md:p-6 max-w-5xl">
+        <div className="flex justify-between items-center mb-4 md:mb-5">
           <p className="text-sm text-ink-muted">
             {staff.length} miembro{staff.length !== 1 ? "s" : ""} del personal
           </p>
@@ -100,73 +103,128 @@ export function StaffManagementPage() {
             <p className="text-sm text-ink-muted">Sin miembros del personal</p>
           </div>
         ) : (
-          <div className="bg-surface-1 border border-surface-border rounded-2xl overflow-hidden">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-surface-border">
-                  <th className="text-left px-5 py-3 text-xs font-medium text-ink-muted uppercase tracking-widest">Nombre</th>
-                  <th className="text-left px-5 py-3 text-xs font-medium text-ink-muted uppercase tracking-widest">Email</th>
-                  <th className="text-left px-5 py-3 text-xs font-medium text-ink-muted uppercase tracking-widest">Rol</th>
-                  <th className="text-left px-5 py-3 text-xs font-medium text-ink-muted uppercase tracking-widest">Estado</th>
-                  <th className="text-right px-5 py-3 text-xs font-medium text-ink-muted uppercase tracking-widest">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {staff.map((member) => (
-                  <tr key={member.id} className="border-b border-surface-border last:border-0 hover:bg-surface-2/40 transition-colors">
-                    <td className="px-5 py-3.5">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-primary-500/10 border border-primary-500/20 flex items-center justify-center text-xs font-semibold text-primary-400 shrink-0">
-                          {member.name.charAt(0).toUpperCase()}
-                        </div>
-                        <span className="text-sm font-medium text-ink-primary">{member.name}</span>
-                      </div>
-                    </td>
-                    <td className="px-5 py-3.5 text-sm text-ink-secondary">{member.email}</td>
-                    <td className="px-5 py-3.5">
-                      <span className={`px-2.5 py-1 text-xs font-medium rounded-full capitalize border ${roleStyles[member.role] ?? roleStyles.admin}`}>
-                        {member.role === "waiter" ? "Mesero" : member.role === "kitchen" ? "Cocina" : "Admin"}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3.5">
-                      <span className={`px-2.5 py-1 text-xs font-medium rounded-full border ${
-                        member.isActive
-                          ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                          : "bg-surface-2 text-ink-muted border-surface-border"
-                      }`}>
-                        {member.isActive ? "Activo" : "Inactivo"}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3.5 text-right">
-                      <div className="flex items-center justify-end gap-3">
+          <>
+            {/* Mobile: Card view */}
+            <div className="md:hidden space-y-2">
+              {staff.map((member) => (
+                <div key={member.id} className="bg-surface-1 border border-surface-border rounded-xl p-4">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-full bg-primary-500/10 border border-primary-500/20 flex items-center justify-center text-sm font-semibold text-primary-400 shrink-0">
+                      {member.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-ink-primary truncate">{member.name}</p>
+                      <p className="text-xs text-ink-muted truncate">{member.email}</p>
+                    </div>
+                    <span className={`px-2 py-0.5 text-[10px] font-medium rounded-full capitalize border shrink-0 ${roleStyles[member.role] ?? roleStyles.admin}`}>
+                      {roleName(member.role)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className={`px-2 py-0.5 text-[10px] font-medium rounded-full border ${
+                      member.isActive
+                        ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                        : "bg-surface-2 text-ink-muted border-surface-border"
+                    }`}>
+                      {member.isActive ? "Activo" : "Inactivo"}
+                    </span>
+                    <div className="flex items-center gap-4">
+                      <button
+                        onClick={() => { setEditing(member); setShowModal(true); }}
+                        className="text-xs font-medium text-ink-muted hover:text-primary-400 transition-colors min-h-[2.75rem] flex items-center"
+                      >
+                        Editar
+                      </button>
+                      {member.isActive ? (
                         <button
-                          onClick={() => { setEditing(member); setShowModal(true); }}
-                          className="text-xs font-medium text-ink-muted hover:text-primary-400 transition-colors"
+                          onClick={() => setDeactivateTarget(member)}
+                          className="text-xs font-medium text-ink-muted hover:text-red-400 transition-colors min-h-[2.75rem] flex items-center"
                         >
-                          Editar
+                          Desactivar
                         </button>
-                        {member.isActive ? (
-                          <button
-                            onClick={() => setDeactivateTarget(member)}
-                            className="text-xs font-medium text-ink-muted hover:text-red-400 transition-colors"
-                          >
-                            Desactivar
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => updateMut.mutate({ id: member.id, isActive: true })}
-                            className="text-xs font-medium text-ink-muted hover:text-emerald-400 transition-colors"
-                          >
-                            Activar
-                          </button>
-                        )}
-                      </div>
-                    </td>
+                      ) : (
+                        <button
+                          onClick={() => updateMut.mutate({ id: member.id, isActive: true })}
+                          className="text-xs font-medium text-ink-muted hover:text-emerald-400 transition-colors min-h-[2.75rem] flex items-center"
+                        >
+                          Activar
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop: Table view */}
+            <div className="hidden md:block bg-surface-1 border border-surface-border rounded-2xl overflow-hidden">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-surface-border">
+                    <th className="text-left px-5 py-3 text-xs font-medium text-ink-muted uppercase tracking-widest">Nombre</th>
+                    <th className="text-left px-5 py-3 text-xs font-medium text-ink-muted uppercase tracking-widest">Email</th>
+                    <th className="text-left px-5 py-3 text-xs font-medium text-ink-muted uppercase tracking-widest">Rol</th>
+                    <th className="text-left px-5 py-3 text-xs font-medium text-ink-muted uppercase tracking-widest">Estado</th>
+                    <th className="text-right px-5 py-3 text-xs font-medium text-ink-muted uppercase tracking-widest">Acciones</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {staff.map((member) => (
+                    <tr key={member.id} className="border-b border-surface-border last:border-0 hover:bg-surface-2/40 transition-colors">
+                      <td className="px-5 py-3.5">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-primary-500/10 border border-primary-500/20 flex items-center justify-center text-xs font-semibold text-primary-400 shrink-0">
+                            {member.name.charAt(0).toUpperCase()}
+                          </div>
+                          <span className="text-sm font-medium text-ink-primary">{member.name}</span>
+                        </div>
+                      </td>
+                      <td className="px-5 py-3.5 text-sm text-ink-secondary">{member.email}</td>
+                      <td className="px-5 py-3.5">
+                        <span className={`px-2.5 py-1 text-xs font-medium rounded-full capitalize border ${roleStyles[member.role] ?? roleStyles.admin}`}>
+                          {roleName(member.role)}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <span className={`px-2.5 py-1 text-xs font-medium rounded-full border ${
+                          member.isActive
+                            ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                            : "bg-surface-2 text-ink-muted border-surface-border"
+                        }`}>
+                          {member.isActive ? "Activo" : "Inactivo"}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3.5 text-right">
+                        <div className="flex items-center justify-end gap-3">
+                          <button
+                            onClick={() => { setEditing(member); setShowModal(true); }}
+                            className="text-xs font-medium text-ink-muted hover:text-primary-400 transition-colors"
+                          >
+                            Editar
+                          </button>
+                          {member.isActive ? (
+                            <button
+                              onClick={() => setDeactivateTarget(member)}
+                              className="text-xs font-medium text-ink-muted hover:text-red-400 transition-colors"
+                            >
+                              Desactivar
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => updateMut.mutate({ id: member.id, isActive: true })}
+                              className="text-xs font-medium text-ink-muted hover:text-emerald-400 transition-colors"
+                            >
+                              Activar
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
 
@@ -208,8 +266,8 @@ export function StaffManagementPage() {
               type="password"
               required={!editing}
               minLength={6}
-              className="w-full px-3 py-2.5 bg-surface-2 border border-surface-border rounded-xl text-sm text-ink-primary
-                placeholder:text-ink-muted focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500/50 transition-colors"
+              className="w-full px-3 py-3 md:py-2.5 bg-surface-2 border border-surface-border rounded-xl text-sm text-ink-primary
+                placeholder:text-ink-muted focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500/50 transition-colors min-h-[2.75rem]"
             />
           </div>
           <div>
@@ -217,8 +275,8 @@ export function StaffManagementPage() {
             <select
               name="role"
               defaultValue={editing?.role ?? "waiter"}
-              className="w-full px-3 py-2.5 bg-surface-2 border border-surface-border rounded-xl text-sm text-ink-primary
-                focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500/50 transition-colors"
+              className="w-full px-3 py-3 md:py-2.5 bg-surface-2 border border-surface-border rounded-xl text-sm text-ink-primary
+                focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500/50 transition-colors min-h-[2.75rem]"
             >
               <option value="waiter">Mesero</option>
               <option value="kitchen">Cocina</option>

@@ -25,8 +25,8 @@ export function DashboardPage() {
   return (
     <div className="flex-1 bg-surface-0">
       <Header title="Panel" />
-      <div className="p-6 max-w-6xl">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      <div className="p-4 md:p-6 max-w-6xl">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mb-6 md:mb-8">
           <StatCard
             label="Pedidos de hoy"
             value={todayOrders.length.toString()}
@@ -58,8 +58,8 @@ export function DashboardPage() {
         </div>
 
         <div className="bg-surface-1 border border-surface-border rounded-2xl overflow-hidden">
-          <div className="px-6 py-4 border-b border-surface-border">
-            <h3 className="font-display text-lg font-semibold text-ink-primary tracking-wide">Pedidos recientes</h3>
+          <div className="px-4 md:px-6 py-3 md:py-4 border-b border-surface-border">
+            <h3 className="font-display text-base md:text-lg font-semibold text-ink-primary tracking-wide">Pedidos recientes</h3>
           </div>
           {orders.length === 0 ? (
             <div className="px-6 py-16 text-center">
@@ -73,24 +73,24 @@ export function DashboardPage() {
               {orders.slice(0, 10).map((order) => (
                 <div
                   key={order.id}
-                  className="flex items-center justify-between px-6 py-3.5 hover:bg-surface-2/50 transition-colors"
+                  className="flex items-center justify-between px-4 md:px-6 py-3 md:py-3.5 hover:bg-surface-2/50 transition-colors"
                 >
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3 md:gap-4 min-w-0">
                     <div className="w-9 h-9 rounded-lg bg-primary-500/10 border border-primary-500/15 flex items-center justify-center shrink-0">
                       <span className="text-sm font-bold text-primary-400 font-mono">
                         {order.table?.number ?? "?"}
                       </span>
                     </div>
-                    <div>
+                    <div className="min-w-0">
                       <span className="text-sm font-medium text-ink-primary">
                         Mesa {order.table?.number ?? "?"}
                       </span>
-                      <span className="text-xs text-ink-muted ml-2">
+                      <span className="text-xs text-ink-muted ml-2 hidden sm:inline">
                         {order.items.length} {order.items.length !== 1 ? "ítems" : "ítem"}
                       </span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2 md:gap-4 shrink-0">
                     <span className="text-sm font-semibold text-ink-primary font-mono tabular-nums">Bs. {order.total}</span>
                     <StatusBadge status={order.status} />
                   </div>
@@ -106,14 +106,14 @@ export function DashboardPage() {
 
 function StatCard({ label, value, icon, accent }: { label: string; value: string; icon: React.ReactNode; accent?: boolean }) {
   return (
-    <div className={`bg-surface-1 border rounded-2xl p-5 ${accent ? "border-primary-500/30 bg-primary-500/5" : "border-surface-border"}`}>
-      <div className="flex items-center justify-between mb-3">
+    <div className={`bg-surface-1 border rounded-2xl p-4 md:p-5 ${accent ? "border-primary-500/30 bg-primary-500/5" : "border-surface-border"}`}>
+      <div className="flex items-center justify-between mb-2 md:mb-3">
         <p className="text-xs font-medium text-ink-muted uppercase tracking-widest">{label}</p>
         <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${accent ? "bg-primary-500/15 text-primary-400" : "bg-surface-2 text-ink-muted"}`}>
           {icon}
         </div>
       </div>
-      <p className={`text-3xl font-bold font-mono tabular-nums ${accent ? "text-primary-400" : "text-ink-primary"}`}>
+      <p className={`text-2xl md:text-3xl font-bold font-mono tabular-nums ${accent ? "text-primary-400" : "text-ink-primary"}`}>
         {value}
       </p>
     </div>
@@ -131,7 +131,7 @@ function StatusBadge({ status }: { status: string }) {
   };
 
   return (
-    <span className={`px-2.5 py-1 text-xs font-medium rounded-full capitalize border ${styles[status] ?? "bg-surface-2 text-ink-muted border-surface-border"}`}>
+    <span className={`px-2 md:px-2.5 py-1 text-[10px] md:text-xs font-medium rounded-full capitalize border ${styles[status] ?? "bg-surface-2 text-ink-muted border-surface-border"}`}>
       {ordenEstado[status] ?? status}
     </span>
   );

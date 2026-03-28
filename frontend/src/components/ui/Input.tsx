@@ -20,9 +20,9 @@ export function Input({ label, error, className = "", id, ...props }: InputProps
       )}
       <input
         id={inputId}
-        className={`w-full px-3.5 py-2.5 rounded-lg text-sm font-sans
+        className={`w-full px-3.5 py-3 md:py-2.5 rounded-xl md:rounded-lg text-sm font-sans
           bg-surface-2 border text-ink-primary placeholder-ink-muted
-          transition-all duration-150
+          transition-all duration-150 min-h-[2.75rem]
           ${error ? "border-red-500/60 focus:border-red-500 focus:shadow-[0_0_0_2px_rgba(239,68,68,0.2)]"
                   : "border-surface-border focus:border-primary-500/60 focus:shadow-[0_0_0_2px_rgba(245,158,11,0.15)]"}
           focus:outline-none

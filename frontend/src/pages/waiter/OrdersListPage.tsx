@@ -78,13 +78,13 @@ export function OrdersListPage() {
   return (
     <div className="flex-1 bg-surface-0">
       <Header title="Pedidos" />
-      <div className="p-6 max-w-3xl">
+      <div className="p-4 md:p-6 max-w-3xl">
         {/* Filter tabs */}
-        <div className="flex gap-1.5 mb-6 bg-surface-1 border border-surface-border rounded-xl p-1">
+        <div className="flex gap-1 md:gap-1.5 mb-4 md:mb-6 bg-surface-1 border border-surface-border rounded-xl p-1 overflow-x-auto scrollbar-hide">
           {STATUS_FILTERS.map((f) => (
             <button
               key={f.value}
-              className={`flex-1 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+              className={`flex-1 px-3 py-2 md:py-1.5 rounded-lg text-xs md:text-sm font-medium transition-all whitespace-nowrap min-h-[2.25rem] ${
                 statusFilter === f.value
                   ? "bg-primary-500 text-ink-inverse shadow-sm"
                   : "text-ink-secondary hover:text-ink-primary"
@@ -119,30 +119,30 @@ export function OrdersListPage() {
                     <button
                       key={order.id}
                       onClick={() => navigate(`/order/${order.id}`)}
-                      className="w-full bg-surface-1 border border-surface-border rounded-xl p-4 flex items-center gap-4
+                      className="w-full bg-surface-1 border border-surface-border rounded-xl p-3 md:p-4 flex items-center gap-3 md:gap-4
                         hover:border-surface-border-light hover:bg-surface-2/30 transition-all text-left group"
                     >
                       {/* Table badge */}
-                      <div className="w-12 h-12 rounded-xl bg-primary-500/10 border border-primary-500/15 flex flex-col items-center justify-center shrink-0">
+                      <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-primary-500/10 border border-primary-500/15 flex flex-col items-center justify-center shrink-0">
                         <span className="text-[10px] text-primary-400/70 leading-tight">Mesa</span>
-                        <span className="text-lg font-bold text-primary-400 leading-tight font-mono tabular-nums">
+                        <span className="text-base md:text-lg font-bold text-primary-400 leading-tight font-mono tabular-nums">
                           {order.table?.number ?? "?"}
                         </span>
                       </div>
 
                       {/* Info */}
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-sm font-medium text-ink-primary">
-                            Pedido #{order.id.slice(0, 8)}
+                        <div className="flex items-center gap-1.5 md:gap-2 mb-1 flex-wrap">
+                          <span className="text-xs md:text-sm font-medium text-ink-primary">
+                            #{order.id.slice(0, 8)}
                           </span>
-                          <span className={`px-2 py-0.5 text-xs font-medium rounded-full capitalize border ${statusStyles[order.status] ?? statusStyles.draft}`}>
+                          <span className={`px-2 py-0.5 text-[10px] md:text-xs font-medium rounded-full capitalize border ${statusStyles[order.status] ?? statusStyles.draft}`}>
                             {ordenEstado[order.status] ?? order.status}
                           </span>
                         </div>
                         <p className="text-xs text-ink-muted">
                           {order.items.length} ítem{order.items.length !== 1 ? "s" : ""}
-                          {order.waiter && <span className="ml-1.5">· {order.waiter.name}</span>}
+                          {order.waiter && <span className="ml-1.5 hidden sm:inline">· {order.waiter.name}</span>}
                         </p>
                       </div>
 

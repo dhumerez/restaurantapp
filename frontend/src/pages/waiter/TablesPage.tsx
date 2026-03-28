@@ -71,8 +71,8 @@ export function TablesPage() {
   return (
     <div className="flex-1 bg-surface-0">
       <Header title="Mesas" />
-      <div className="p-6">
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+      <div className="p-3 md:p-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 md:gap-3">
           {tables.map((table) => {
             const order = orderByTable.get(table.id);
             const isBusy = !!order;
@@ -82,14 +82,14 @@ export function TablesPage() {
               <button
                 key={table.id}
                 onClick={() => handleTableClick(table)}
-                className={`relative p-5 rounded-2xl border-2 transition-all text-center group
+                className={`relative p-3 md:p-5 rounded-xl md:rounded-2xl border-2 transition-all text-center group
                   hover:scale-[1.02] active:scale-[0.98]
                   ${cfg ? `${cfg.border} ${cfg.bg}` : "border-surface-border bg-surface-1 hover:border-primary-500/30"}`}
               >
                 {/* Table number */}
-                <div className={`w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center
+                <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl mx-auto mb-2 md:mb-3 flex items-center justify-center
                   ${cfg ? "bg-surface-2/60" : "bg-primary-500/10 border border-primary-500/15"}`}>
-                  <span className={`text-2xl font-bold font-mono tabular-nums ${cfg ? "text-ink-primary" : "text-primary-400"}`}>
+                  <span className={`text-xl md:text-2xl font-bold font-mono tabular-nums ${cfg ? "text-ink-primary" : "text-primary-400"}`}>
                     {table.number}
                   </span>
                 </div>

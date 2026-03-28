@@ -3,7 +3,8 @@ import type { ReactNode } from "react";
 import { io, Socket } from "socket.io-client";
 import { useAuth } from "./AuthContext";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const API_URL = import.meta.env.VITE_API_URL || "";
+const SOCKET_PATH = API_URL ? "/socket.io/" : (import.meta.env.BASE_URL + "socket.io/");
 
 const SocketContext = createContext<Socket | null>(null);
 
@@ -18,8 +19,9 @@ export function SocketProvider({ children }: { children: ReactNode }) {
     }
 
     const token = localStorage.getItem("accessToken");
-    const newSocket = io(API_URL, {
+    const newSocket = io(API_URL || window.location.origin, {
       auth: { token },
+      path: SOCKET_PATH,
       transports: ["websocket", "polling"],
     });
 

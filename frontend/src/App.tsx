@@ -50,6 +50,7 @@ function AppLayout() {
   return (
     <div className="flex min-h-screen bg-surface-0">
       {user && <Sidebar />}
+      <div className="flex-1 flex flex-col min-w-0 pb-16 md:pb-0">
       <Routes>
         <Route path="/login" element={<LoginPage />} />
 
@@ -128,6 +129,7 @@ function AppLayout() {
         {/* Default redirect based on role */}
         <Route path="*" element={<RoleRedirect />} />
       </Routes>
+      </div>
     </div>
   );
 }
@@ -151,7 +153,7 @@ export default function App() {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
+        <BrowserRouter basename={import.meta.env.BASE_URL.replace(/\/$/, "")}>
           <AuthProvider>
             <SocketProvider>
               <ToastProvider>

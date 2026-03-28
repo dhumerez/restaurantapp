@@ -87,11 +87,48 @@ export function MenuManagementPage() {
   const selectedCategory = categories.find((c) => c.id === selectedCategoryId);
 
   return (
-    <div className="flex-1 bg-surface-0">
+    <div className="flex-1 bg-surface-0 flex flex-col">
       <Header title="Gestión de Menú" />
-      <div className="p-6 flex gap-5">
-        {/* Categories sidebar */}
-        <div className="w-56 shrink-0">
+
+      {/* Mobile: horizontal category tabs */}
+      <div className="md:hidden flex items-center gap-2 px-4 py-3 bg-surface-1 border-b border-surface-border overflow-x-auto scrollbar-hide shrink-0">
+        <button
+          onClick={() => { setEditingCategory(null); setCategoryModal(true); }}
+          className="w-8 h-8 rounded-lg bg-primary-500/10 hover:bg-primary-500/20 border border-primary-500/20 text-primary-400 flex items-center justify-center shrink-0"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+        </button>
+        <button
+          className={`px-3.5 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all shrink-0 ${
+            !selectedCategoryId
+              ? "bg-primary-500 text-ink-inverse"
+              : "text-ink-secondary hover:text-ink-primary hover:bg-surface-2"
+          }`}
+          onClick={() => setSelectedCategoryId(null)}
+        >
+          Todos
+        </button>
+        {categories.map((cat) => (
+          <button
+            key={cat.id}
+            className={`px-3.5 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all shrink-0 ${
+              selectedCategoryId === cat.id
+                ? "bg-primary-500 text-ink-inverse"
+                : "text-ink-secondary hover:text-ink-primary hover:bg-surface-2"
+            }`}
+            onClick={() => setSelectedCategoryId(cat.id)}
+            onDoubleClick={() => { setEditingCategory(cat); setCategoryModal(true); }}
+          >
+            {cat.name}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex-1 flex overflow-hidden">
+        {/* Desktop: Categories sidebar */}
+        <div className="hidden md:block w-56 shrink-0 p-6 pr-0">
           <div className="bg-surface-1 border border-surface-border rounded-2xl overflow-hidden">
             <div className="px-4 py-3 border-b border-surface-border flex items-center justify-between">
               <span className="text-xs font-medium text-ink-muted uppercase tracking-widest">Categorías</span>
@@ -142,10 +179,10 @@ export function MenuManagementPage() {
         </div>
 
         {/* Menu items */}
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 p-4 md:p-6 overflow-y-auto">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="font-display text-lg font-semibold text-ink-primary tracking-wide">
+              <h3 className="font-display text-base md:text-lg font-semibold text-ink-primary tracking-wide">
                 {selectedCategory?.name ?? "Todos"}
               </h3>
               <p className="text-xs text-ink-muted mt-0.5">{menuItems.length} ítem{menuItems.length !== 1 ? "s" : ""}</p>
@@ -156,14 +193,14 @@ export function MenuManagementPage() {
           </div>
 
           {menuItems.length === 0 ? (
-            <div className="bg-surface-1 border border-surface-border rounded-2xl p-16 text-center">
+            <div className="bg-surface-1 border border-surface-border rounded-2xl p-12 md:p-16 text-center">
               <svg className="w-12 h-12 text-ink-muted mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
               </svg>
               <p className="text-sm text-ink-muted">Sin ítems en el menú</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {menuItems.map((item) => (
                 <div
                   key={item.id}
@@ -182,20 +219,21 @@ export function MenuManagementPage() {
                     <span className="text-xs text-ink-muted">
                       {item.stockCount !== null ? `${item.stockCount} en stock` : "Ilimitado"}
                     </span>
-                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    {/* Mobile: always visible; Desktop: show on hover */}
+                    <div className="flex gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                       <button
-                        className="p-1.5 text-ink-muted hover:text-primary-400 hover:bg-primary-500/10 rounded-lg transition-colors"
+                        className="p-2 text-ink-muted hover:text-primary-400 hover:bg-primary-500/10 rounded-lg transition-colors"
                         onClick={() => { setEditingItem(item); setItemModal(true); }}
                       >
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                         </svg>
                       </button>
                       <button
-                        className="p-1.5 text-ink-muted hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                        className="p-2 text-ink-muted hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                         onClick={() => deleteItemMut.mutate(item.id)}
                       >
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
                       </button>
@@ -334,8 +372,8 @@ function MenuItemForm({
         <select
           value={categoryId}
           onChange={(e) => setCategoryId(e.target.value)}
-          className="w-full px-3 py-2.5 bg-surface-2 border border-surface-border rounded-xl text-sm text-ink-primary
-            focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500/50 transition-colors"
+          className="w-full px-3 py-3 md:py-2.5 bg-surface-2 border border-surface-border rounded-xl text-sm text-ink-primary
+            focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500/50 transition-colors min-h-[2.75rem]"
           required
         >
           <option value="">Seleccionar categoría</option>
@@ -346,12 +384,12 @@ function MenuItemForm({
       </div>
 
       <div>
-        <label className="flex items-center gap-2.5 cursor-pointer">
+        <label className="flex items-center gap-2.5 cursor-pointer min-h-[2.75rem]">
           <input
             type="checkbox"
             checked={trackStock}
             onChange={(e) => setTrackStock(e.target.checked)}
-            className="w-4 h-4 rounded border-surface-border bg-surface-2 text-primary-500 focus:ring-primary-500/30"
+            className="w-5 h-5 rounded border-surface-border bg-surface-2 text-primary-500 focus:ring-primary-500/30"
           />
           <span className="text-sm text-ink-secondary">Controlar inventario</span>
         </label>

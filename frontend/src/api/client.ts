@@ -1,9 +1,10 @@
 import axios from "axios";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const API_URL = import.meta.env.VITE_API_URL || "";
+const BASE = API_URL || (import.meta.env.BASE_URL.replace(/\/$/, ""));
 
 const client = axios.create({
-  baseURL: `${API_URL}/api`,
+  baseURL: `${BASE}/api`,
   withCredentials: true,
 });
 
@@ -60,7 +61,7 @@ client.interceptors.response.use(
 
       try {
         const { data } = await axios.post(
-          `${API_URL}/api/auth/refresh`,
+          `${BASE}/api/auth/refresh`,
           {},
           { withCredentials: true }
         );
@@ -71,7 +72,7 @@ client.interceptors.response.use(
       } catch (refreshError) {
         processQueue(refreshError, null);
         localStorage.removeItem("accessToken");
-        window.location.href = "/login";
+        window.location.href = import.meta.env.BASE_URL + "login";
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;

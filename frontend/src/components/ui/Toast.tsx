@@ -30,7 +30,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={{ toast: addToast }}>
       {children}
-      <div className="fixed bottom-5 right-5 z-50 flex flex-col gap-2.5 pointer-events-none">
+      {/* Mobile: bottom-center above tab bar; Desktop: bottom-right */}
+      <div className="fixed bottom-20 md:bottom-5 left-4 right-4 md:left-auto md:right-5 z-50 flex flex-col gap-2.5 pointer-events-none items-center md:items-end">
         {toasts.map((t) => (
           <ToastItem key={t.id} toast={t} onRemove={removeToast} />
         ))}
@@ -77,7 +78,7 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: number) =
   return (
     <div
       className="pointer-events-auto animate-slide-in bg-surface-2 border border-surface-border
-        rounded-xl shadow-modal min-w-[280px] max-w-sm overflow-hidden cursor-pointer"
+        rounded-xl shadow-modal w-full md:min-w-[280px] md:max-w-sm md:w-auto overflow-hidden cursor-pointer"
       onClick={() => onRemove(toast.id)}
     >
       <div className={`h-0.5 ${s.bar}`} />

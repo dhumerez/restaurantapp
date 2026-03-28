@@ -90,8 +90,8 @@ export function TableManagementPage() {
   return (
     <div className="flex-1 bg-surface-0">
       <Header title="Gestión de Mesas" />
-      <div className="p-6 max-w-5xl">
-        <div className="flex justify-between items-center mb-5">
+      <div className="p-4 md:p-6 max-w-5xl">
+        <div className="flex justify-between items-center mb-4 md:mb-5">
           <p className="text-sm text-ink-muted">
             {tables.length} mesa{tables.length !== 1 ? "s" : ""}
           </p>
@@ -112,7 +112,7 @@ export function TableManagementPage() {
             <p className="text-sm text-ink-muted">Sin mesas aún</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 md:gap-3">
             {sortedTables.map((table) => (
               <div
                 key={table.id}
@@ -129,7 +129,7 @@ export function TableManagementPage() {
                   <div className="text-xs text-ink-muted mb-0.5 truncate">{table.label}</div>
                 )}
                 <div className="text-xs text-ink-muted mb-3">{table.seats} asientos</div>
-                <div className="flex justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="flex justify-center gap-3 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                   <button
                     onClick={() => { setEditing(table); setShowModal(true); }}
                     className="text-xs text-ink-muted hover:text-primary-400 font-medium transition-colors"
@@ -181,8 +181,8 @@ export function TableManagementPage() {
               name="label"
               defaultValue={editing?.label ?? ""}
               placeholder="ej. Patio, Ventana"
-              className="w-full px-3 py-2.5 bg-surface-2 border border-surface-border rounded-xl text-sm text-ink-primary
-                placeholder:text-ink-muted focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500/50 transition-colors"
+              className="w-full px-3 py-3 md:py-2.5 bg-surface-2 border border-surface-border rounded-xl text-sm text-ink-primary
+                placeholder:text-ink-muted focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500/50 transition-colors min-h-[2.75rem]"
             />
           </div>
           <Input

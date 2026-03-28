@@ -4,7 +4,7 @@ FROM node:22-alpine AS builder
 WORKDIR /app
 
 COPY package.json package-lock.json* ./
-RUN npm ci --ignore-scripts
+RUN npm install --ignore-scripts
 
 COPY tsconfig.json ./
 COPY src ./src
@@ -18,12 +18,15 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
-# Only production dependencies
+# Only production dependencies (bcrypt needs native build tools)
+RUN apk add --no-cache python3 make g++
 COPY package.json package-lock.json* ./
-RUN npm ci --omit=dev --ignore-scripts && npm cache clean --force
+RUN npm install --omit=dev && npm cache clean --force
+RUN apk del python3 make g++
 
-# Copy compiled output
+# Copy compiled output + migration files (SQL, not compiled by tsc)
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/src/db/migrations ./dist/db/migrations
 
 # Non-root user for security
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup

@@ -11,11 +11,18 @@
     --color-border:    #232840;
     --color-primary:   #6366f1;
     --color-primary-dim: rgba(99,102,241,0.12);
+    /* Safe area insets for notched devices */
+    --sat: env(safe-area-inset-top, 0px);
+    --sar: env(safe-area-inset-right, 0px);
+    --sab: env(safe-area-inset-bottom, 0px);
+    --sal: env(safe-area-inset-left, 0px);
   }
 
   html {
     background-color: var(--color-bg);
     color-scheme: dark;
+    /* Prevent pull-to-refresh on mobile */
+    overscroll-behavior: none;
   }
 
   body {
@@ -25,10 +32,30 @@
     -moz-osx-font-smoothing: grayscale;
     background-color: var(--color-bg);
     color: #f5f0ea;
+    /* Prevent text size adjustment on orientation change */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
 
   * {
     box-sizing: border-box;
+    /* Remove tap highlight on mobile */
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Ensure touch targets are comfortable */
+  button, a, [role="button"] {
+    touch-action: manipulation;
+  }
+
+  /* Prevent iOS zoom on input focus */
+  input, select, textarea {
+    font-size: 16px;
+  }
+  @media (min-width: 768px) {
+    input, select, textarea {
+      font-size: inherit;
+    }
   }
 
   ::-webkit-scrollbar {
@@ -44,6 +71,15 @@
   }
   ::-webkit-scrollbar-thumb:hover {
     background: #3d4a6a;
+  }
+
+  /* Hide scrollbars on mobile for horizontal scroll areas */
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }
 
@@ -75,6 +111,10 @@
 
   .animate-fade-up {
     animation: fade-up 0.4s ease-out forwards;
+  }
+
+  .animate-slide-up {
+    animation: slide-up 0.3s cubic-bezier(0.32, 0.72, 0, 1) forwards;
   }
 
   /* Staggered children */
@@ -117,6 +157,10 @@
   .status-ready      { background: #052e1c; color: #34d399; border: 1px solid #064e3b; }
   .status-served     { background: #1a1a1a; color: #6b7280; border: 1px solid #2a2a2a; }
   .status-cancelled  { background: #1f0a0a; color: #f87171; border: 1px solid #3b0c0c; }
+
+  /* Safe area padding helpers */
+  .pb-safe { padding-bottom: max(0.75rem, var(--sab)); }
+  .pt-safe { padding-top: max(0.75rem, var(--sat)); }
 }
 
 @keyframes slide-in {
@@ -130,4 +174,8 @@
 @keyframes fade-in {
   from { opacity: 0; }
   to   { opacity: 1; }
+}
+@keyframes slide-up {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
 }
