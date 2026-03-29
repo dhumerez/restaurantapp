@@ -1,7 +1,7 @@
 import { getIO } from "./index.js";
 
 export function emitOrderNew(restaurantId: string, order: unknown) {
-  getIO().to(`kitchen:${restaurantId}`).emit("order:new", order);
+  getIO().to(`restaurant:${restaurantId}`).emit("order:new", order);
 }
 
 export function emitOrderItemUpdated(restaurantId: string, data: unknown) {

@@ -34,8 +34,8 @@ export async function updateOrder(req: Request, res: Response) {
     req.params.id as string,
     req.body
   );
-  // Notify kitchen when a placed order is edited
-  if (order.status === "placed") {
+  // Notify all users when an active order is edited
+  if (order.status !== "draft") {
     emitOrderItemUpdated(req.user!.restaurantId, order);
   }
   res.json(order);
