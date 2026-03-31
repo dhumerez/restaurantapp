@@ -11,6 +11,16 @@ import {
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
+// ─── Superadmins (platform-level) ────────────────────────────
+export const superadmins = pgTable("superadmins", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: varchar("name", { length: 255 }).notNull(),
+  email: varchar("email", { length: 255 }).notNull().unique(),
+  passwordHash: varchar("password_hash", { length: 255 }).notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
 // ─── Restaurants ─────────────────────────────────────────────
 export const restaurants = pgTable("restaurants", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -19,6 +29,10 @@ export const restaurants = pgTable("restaurants", {
   address: text("address"),
   currency: varchar("currency", { length: 3 }).default("USD").notNull(),
   taxRate: decimal("tax_rate", { precision: 5, scale: 2 }).default("0.00").notNull(),
+  status: varchar("status", { length: 20 })
+    .default("active")
+    .notNull()
+    .$type<"active" | "trial" | "suspended" | "inactive">(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });

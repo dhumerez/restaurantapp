@@ -12,6 +12,15 @@ async function seed() {
 
   console.log("Seeding database...");
 
+  // Create superadmin
+  const superadminHash = await bcrypt.hash("superadmin123", 12);
+  await db.insert(schema.superadmins).values({
+    name: "Platform Admin",
+    email: "super@platform.com",
+    passwordHash: superadminHash,
+  });
+  console.log("Created superadmin: super@platform.com");
+
   // Create restaurant
   const [restaurant] = await db
     .insert(schema.restaurants)
@@ -106,10 +115,11 @@ async function seed() {
   console.log("Created 10 tables");
 
   console.log("\n--- Seed Complete ---");
-  console.log("Login credentials (all use password: password123):");
-  console.log("  Admin:   admin@demo.com");
-  console.log("  Waiter:  waiter@demo.com");
-  console.log("  Kitchen: kitchen@demo.com");
+  console.log("Login credentials:");
+  console.log("  Superadmin: super@platform.com / superadmin123");
+  console.log("  Admin:      admin@demo.com / password123");
+  console.log("  Waiter:     waiter@demo.com / password123");
+  console.log("  Kitchen:    kitchen@demo.com / password123");
 
   await pool.end();
 }

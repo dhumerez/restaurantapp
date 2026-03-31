@@ -32,6 +32,13 @@ export function initSocket(httpServer: HttpServer) {
 
   io.on("connection", (socket) => {
     const user = socket.data.user as JwtPayload;
+
+    // Superadmins don't join restaurant rooms
+    if (user.scope === "platform") {
+      socket.join("platform:admins");
+      return;
+    }
+
     const restaurantRoom = `restaurant:${user.restaurantId}`;
 
     // Join restaurant room

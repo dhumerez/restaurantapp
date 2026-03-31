@@ -3,8 +3,15 @@ import { useAuth } from "../../context/AuthContext";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  roles?: Array<"admin" | "waiter" | "kitchen">;
+  roles?: Array<"admin" | "waiter" | "kitchen" | "superadmin">;
 }
+
+const defaultRoutes: Record<string, string> = {
+  admin: "/admin",
+  waiter: "/tables",
+  kitchen: "/kitchen",
+  superadmin: "/platform",
+};
 
 export function ProtectedRoute({ children, roles }: ProtectedRouteProps) {
   const { user, loading } = useAuth();
@@ -22,13 +29,7 @@ export function ProtectedRoute({ children, roles }: ProtectedRouteProps) {
   }
 
   if (roles && !roles.includes(user.role)) {
-    // Redirect to their default page
-    const defaultRoutes = {
-      admin: "/admin",
-      waiter: "/tables",
-      kitchen: "/kitchen",
-    };
-    return <Navigate to={defaultRoutes[user.role]} replace />;
+    return <Navigate to={defaultRoutes[user.role] || "/login"} replace />;
   }
 
   return <>{children}</>;

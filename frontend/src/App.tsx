@@ -17,6 +17,11 @@ import { OrderPage } from "./pages/waiter/OrderPage";
 import { OrdersListPage } from "./pages/waiter/OrdersListPage";
 import { KitchenDisplayPage } from "./pages/kitchen/KitchenDisplayPage";
 import { TableManagementPage } from "./pages/admin/TableManagementPage";
+// Platform (superadmin) pages
+import { PlatformDashboard } from "./pages/platform/PlatformDashboard";
+import { RestaurantsListPage } from "./pages/platform/RestaurantsListPage";
+import { CreateRestaurantPage } from "./pages/platform/CreateRestaurantPage";
+import { RestaurantDetailPage } from "./pages/platform/RestaurantDetailPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -29,6 +34,52 @@ const queryClient = new QueryClient({
 
 function AppLayout() {
   const { user } = useAuth();
+
+  // Superadmin has its own layout (sidebar + platform routes only)
+  if (user?.role === "superadmin") {
+    return (
+      <div className="flex min-h-screen bg-surface-0">
+        <Sidebar />
+        <div className="flex-1 flex flex-col min-w-0 pb-16 md:pb-0">
+          <Routes>
+            <Route
+              path="/platform"
+              element={
+                <ProtectedRoute roles={["superadmin"]}>
+                  <PlatformDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/platform/restaurants"
+              element={
+                <ProtectedRoute roles={["superadmin"]}>
+                  <RestaurantsListPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/platform/restaurants/new"
+              element={
+                <ProtectedRoute roles={["superadmin"]}>
+                  <CreateRestaurantPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/platform/restaurants/:id"
+              element={
+                <ProtectedRoute roles={["superadmin"]}>
+                  <RestaurantDetailPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="*" element={<Navigate to="/platform" replace />} />
+          </Routes>
+        </div>
+      </div>
+    );
+  }
 
   // Kitchen display has its own full-screen layout
   if (user?.role === "kitchen") {
@@ -140,13 +191,14 @@ function RoleRedirect() {
   if (loading) return null;
   if (!user) return <Navigate to="/login" replace />;
 
-  const routes = {
+  const routes: Record<string, string> = {
+    superadmin: "/platform",
     admin: "/admin",
     waiter: "/tables",
     kitchen: "/kitchen",
   };
 
-  return <Navigate to={routes[user.role]} replace />;
+  return <Navigate to={routes[user.role] || "/login"} replace />;
 }
 
 export default function App() {

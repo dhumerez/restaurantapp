@@ -123,18 +123,21 @@ export async function seedTestData(): Promise<TestData> {
     userId: admin.id,
     restaurantId: restaurant.id,
     role: "admin",
+    scope: "restaurant",
   });
 
   const waiterToken = generateToken({
     userId: waiter.id,
     restaurantId: restaurant.id,
     role: "waiter",
+    scope: "restaurant",
   });
 
   const kitchenToken = generateToken({
     userId: kitchen.id,
     restaurantId: restaurant.id,
     role: "kitchen",
+    scope: "restaurant",
   });
 
   return {

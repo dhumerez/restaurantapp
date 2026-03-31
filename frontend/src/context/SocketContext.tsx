@@ -13,7 +13,7 @@ export function SocketProvider({ children }: { children: ReactNode }) {
   const [socket, setSocket] = useState<Socket | null>(null);
 
   useEffect(() => {
-    if (!user) {
+    if (!user || user.role === "superadmin") {
       setSocket(null);
       return;
     }

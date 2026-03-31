@@ -30,7 +30,7 @@ describe("authenticate middleware", () => {
   });
 
   it("sets req.user and calls next with valid token", () => {
-    const payload = { userId: "u1", restaurantId: "r1", role: "admin" as const };
+    const payload = { userId: "u1", restaurantId: "r1", role: "admin" as const, scope: "restaurant" as const };
     const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "15m" });
     const req = mockReq({ headers: { authorization: `Bearer ${token}` } });
     const next = vi.fn();
@@ -45,7 +45,7 @@ describe("authenticate middleware", () => {
   });
 
   it("throws UnauthorizedError with expired token", () => {
-    const payload = { userId: "u1", restaurantId: "r1", role: "admin" as const };
+    const payload = { userId: "u1", restaurantId: "r1", role: "admin" as const, scope: "restaurant" as const };
     const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "-1s" });
     const req = mockReq({ headers: { authorization: `Bearer ${token}` } });
     expect(() => authenticate(req, mockRes, mockNext)).toThrow(UnauthorizedError);
@@ -61,14 +61,14 @@ describe("authorize middleware", () => {
 
   it("throws ForbiddenError when user role is not in allowed roles", () => {
     const req = mockReq();
-    req.user = { userId: "u1", restaurantId: "r1", role: "waiter" };
+    req.user = { userId: "u1", restaurantId: "r1", role: "waiter", scope: "restaurant" };
     const middleware = authorize("admin");
     expect(() => middleware(req, mockRes, mockNext)).toThrow(ForbiddenError);
   });
 
   it("calls next when user role is in allowed roles", () => {
     const req = mockReq();
-    req.user = { userId: "u1", restaurantId: "r1", role: "admin" };
+    req.user = { userId: "u1", restaurantId: "r1", role: "admin", scope: "restaurant" };
     const next = vi.fn();
     const middleware = authorize("admin", "waiter");
     middleware(req, mockRes, next);
@@ -77,7 +77,7 @@ describe("authorize middleware", () => {
 
   it("allows multiple roles", () => {
     const req = mockReq();
-    req.user = { userId: "u1", restaurantId: "r1", role: "kitchen" };
+    req.user = { userId: "u1", restaurantId: "r1", role: "kitchen", scope: "restaurant" };
     const next = vi.fn();
     const middleware = authorize("kitchen", "admin");
     middleware(req, mockRes, next);

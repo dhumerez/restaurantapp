@@ -8,16 +8,21 @@ import {
   HiOutlineClipboardList,
   HiOutlineLogout,
 } from "react-icons/hi";
+import { HiOutlineBuildingStorefront } from "react-icons/hi2";
 import type { IconType } from "react-icons";
 
 interface NavItem {
   label: string;
   path: string;
   icon: IconType;
-  roles: Array<"admin" | "waiter" | "kitchen">;
+  roles: Array<"admin" | "waiter" | "kitchen" | "superadmin">;
 }
 
 const navItems: NavItem[] = [
+  // Superadmin
+  { label: "Plataforma",     path: "/platform",              icon: HiOutlineViewGrid,          roles: ["superadmin"] },
+  { label: "Restaurantes",   path: "/platform/restaurants",  icon: HiOutlineBuildingStorefront, roles: ["superadmin"] },
+  // Restaurant admin
   { label: "Panel",          path: "/admin",        icon: HiOutlineViewGrid,     roles: ["admin"] },
   { label: "Menú",           path: "/admin/menu",   icon: HiOutlineBookOpen,     roles: ["admin"] },
   { label: "Personal",       path: "/admin/staff",  icon: HiOutlineUsers,        roles: ["admin"] },
@@ -28,12 +33,14 @@ const navItems: NavItem[] = [
 ];
 
 const roleColors: Record<string, string> = {
+  superadmin: "bg-purple-500/15 text-purple-400 border-purple-500/25",
   admin:   "bg-primary-500/15 text-primary-400 border-primary-500/25",
   waiter:  "bg-blue-500/15 text-blue-400 border-blue-500/25",
   kitchen: "bg-orange-500/15 text-orange-400 border-orange-500/25",
 };
 
 const roleLabel: Record<string, string> = {
+  superadmin: "Superadmin",
   admin:   "Admin",
   waiter:  "Mesero",
   kitchen: "Cocina",

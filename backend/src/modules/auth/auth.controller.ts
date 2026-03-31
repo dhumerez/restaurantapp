@@ -41,6 +41,6 @@ export async function logout(_req: Request, res: Response) {
 }
 
 export async function getMe(req: Request, res: Response) {
-  const user = await authService.getMe(req.user!.userId);
+  const user = await authService.getMe(req.user!.userId, req.user!.scope);
   res.json(user);
 }

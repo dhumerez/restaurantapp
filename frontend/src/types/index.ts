@@ -2,8 +2,9 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: "admin" | "waiter" | "kitchen";
-  restaurantId: string;
+  role: "admin" | "waiter" | "kitchen" | "superadmin";
+  restaurantId?: string;
+  scope: "restaurant" | "platform";
 }
 
 export interface Category {

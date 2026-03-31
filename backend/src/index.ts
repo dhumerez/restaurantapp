@@ -19,6 +19,7 @@ import ordersRoutes from "./modules/orders/orders.routes.js";
 import kitchenRoutes from "./modules/kitchen/kitchen.routes.js";
 import tablesRoutes from "./modules/orders/tables.routes.js";
 import adminRoutes from "./modules/admin/admin.routes.js";
+import superadminRoutes from "./modules/superadmin/superadmin.routes.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -56,6 +57,7 @@ async function bootstrap() {
   app.use("/api/kitchen", kitchenRoutes);
   app.use("/api/tables", tablesRoutes);
   app.use("/api/admin", adminRoutes);
+  app.use("/api/superadmin", superadminRoutes);
 
   app.use(errorHandler);
 
