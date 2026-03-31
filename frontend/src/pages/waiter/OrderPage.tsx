@@ -26,12 +26,16 @@ const orderStatusStyles: Record<string, string> = {
   cancelled: "bg-red-500/10 text-red-400 border-red-500/20",
 };
 
+function esc(str: string): string {
+  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+
 function printReceipt(order: Order) {
   const items = order.items
     .map(
       (item) =>
         `<tr>
-          <td style="padding:4px 8px 4px 0">${item.quantity}× ${item.itemName}${item.notes ? `<div style="font-size:11px;color:#888">${item.notes}</div>` : ""}</td>
+          <td style="padding:4px 8px 4px 0">${item.quantity}× ${esc(item.itemName)}${item.notes ? `<div style="font-size:11px;color:#888">${esc(item.notes)}</div>` : ""}</td>
           <td style="padding:4px 0;text-align:right">Bs. ${(parseFloat(item.unitPrice) * item.quantity).toFixed(2)}</td>
         </tr>`
     )
@@ -58,9 +62,9 @@ function printReceipt(order: Order) {
   <h1>Restaurante</h1>
   <div class="sub">
     Mesa ${order.table?.number ?? "?"} &nbsp;·&nbsp;
-    Pedido #${order.id.slice(0, 8)}<br>
-    ${new Date(order.createdAt).toLocaleString()}
-    ${order.waiter ? `<br>Atendido por: ${order.waiter.name}` : ""}
+    Pedido #${esc(order.id.slice(0, 8))}<br>
+    ${esc(new Date(order.createdAt).toLocaleString())}
+    ${order.waiter ? `<br>Atendido por: ${esc(order.waiter.name)}` : ""}
   </div>
   <div class="divider"></div>
   <table>${items}</table>
@@ -70,12 +74,12 @@ function printReceipt(order: Order) {
     <tr><td>Impuesto</td><td style="text-align:right">Bs. ${parseFloat(order.tax).toFixed(2)}</td></tr>
     <tr class="total-row"><td>Total</td><td style="text-align:right">Bs. ${parseFloat(order.total).toFixed(2)}</td></tr>
   </table>
-  ${order.notes ? `<div class="divider"></div><div style="font-size:12px;color:#666">Nota: ${order.notes}</div>` : ""}
+  ${order.notes ? `<div class="divider"></div><div style="font-size:12px;color:#666">Nota: ${esc(order.notes)}</div>` : ""}
   <div class="footer">¡Gracias!</div>
 </body>
 </html>`;
 
-  const win = window.open("", "_blank", "width=400,height=600");
+  const win = window.open("", "_blank", "noopener,noreferrer,width=400,height=600");
   if (!win) return;
   win.document.write(html);
   win.document.close();

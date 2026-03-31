@@ -22,7 +22,7 @@ export function initSocket(httpServer: HttpServer) {
     }
 
     try {
-      const payload = jwt.verify(token, env.JWT_SECRET) as JwtPayload;
+      const payload = jwt.verify(token, env.JWT_SECRET, { algorithms: ["HS256"] }) as JwtPayload;
       socket.data.user = payload;
       next();
     } catch {

@@ -36,6 +36,7 @@ async function bootstrap() {
   }
 
   const app = express();
+  app.set("trust proxy", 1);
   const httpServer = createServer(app);
 
   initSocket(httpServer);

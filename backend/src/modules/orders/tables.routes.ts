@@ -3,6 +3,8 @@ import { eq, and } from "drizzle-orm";
 import { db } from "../../config/db.js";
 import { tables } from "../../db/schema.js";
 import { authenticate, authorize } from "../../middleware/auth.js";
+import { validate } from "../../middleware/validate.js";
+import { createTableSchema, updateTableSchema } from "./tables.schema.js";
 import { NotFoundError } from "../../utils/errors.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 
@@ -23,7 +25,7 @@ router.get("/", asyncHandler(async (req: Request, res: Response) => {
 }));
 
 // Create table (admin)
-router.post("/", authorize("admin"), asyncHandler(async (req: Request, res: Response) => {
+router.post("/", authorize("admin"), validate(createTableSchema), asyncHandler(async (req: Request, res: Response) => {
   const [table] = await db
     .insert(tables)
     .values({ ...req.body, restaurantId: req.user!.restaurantId })
@@ -32,10 +34,17 @@ router.post("/", authorize("admin"), asyncHandler(async (req: Request, res: Resp
 }));
 
 // Update table (admin)
-router.put("/:id", authorize("admin"), asyncHandler(async (req: Request, res: Response) => {
+router.put("/:id", authorize("admin"), validate(updateTableSchema), asyncHandler(async (req: Request, res: Response) => {
+  const { number, label, seats, isActive } = req.body;
+  const updates: Record<string, unknown> = {};
+  if (number !== undefined) updates.number = number;
+  if (label !== undefined) updates.label = label;
+  if (seats !== undefined) updates.seats = seats;
+  if (isActive !== undefined) updates.isActive = isActive;
+
   const [table] = await db
     .update(tables)
-    .set(req.body)
+    .set(updates)
     .where(
       and(eq(tables.id, req.params.id as string), eq(tables.restaurantId, req.user!.restaurantId))
     )

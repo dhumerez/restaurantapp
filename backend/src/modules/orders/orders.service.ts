@@ -214,33 +214,39 @@ export async function placeOrder(restaurantId: string, orderId: string) {
     throw new AppError(400, "Cannot place an empty order");
   }
 
-  // Decrement stock for items with stock tracking
-  for (const item of order.items) {
-    if (item.menuItem && item.menuItem.stockCount !== null) {
-      await db
-        .update(menuItems)
-        .set({
-          stockCount: sql`${menuItems.stockCount} - ${item.quantity}`,
-          updatedAt: new Date(),
-        })
-        .where(eq(menuItems.id, item.menuItemId));
+  await db.transaction(async (tx) => {
+    // Decrement stock for items with stock tracking
+    for (const item of order.items) {
+      if (item.menuItem && item.menuItem.stockCount !== null) {
+        const [updated] = await tx
+          .update(menuItems)
+          .set({
+            stockCount: sql`${menuItems.stockCount} - ${item.quantity}`,
+            updatedAt: new Date(),
+          })
+          .where(and(eq(menuItems.id, item.menuItemId), sql`${menuItems.stockCount} >= ${item.quantity}`))
+          .returning();
+
+        if (!updated) {
+          throw new AppError(400, `${item.menuItem.name} does not have enough stock`);
+        }
+      }
     }
-  }
 
-  // Update order status
-  const [updated] = await db
-    .update(orders)
-    .set({ status: "placed", updatedAt: new Date() })
-    .where(eq(orders.id, orderId))
-    .returning();
+    // Update order status
+    await tx
+      .update(orders)
+      .set({ status: "placed", updatedAt: new Date() })
+      .where(eq(orders.id, orderId));
 
-  // Update all items to pending
-  await db
-    .update(orderItems)
-    .set({ status: "pending" })
-    .where(eq(orderItems.orderId, orderId));
+    // Update all items to pending
+    await tx
+      .update(orderItems)
+      .set({ status: "pending" })
+      .where(eq(orderItems.orderId, orderId));
+  });
 
-  return getOrder(restaurantId, updated.id);
+  return getOrder(restaurantId, orderId);
 }
 
 export async function serveOrder(restaurantId: string, orderId: string) {

@@ -51,15 +51,27 @@ export async function login(input: LoginInput) {
 
 export async function refreshAccessToken(refreshToken: string) {
   try {
-    const payload = jwt.verify(refreshToken, env.JWT_REFRESH_SECRET) as JwtPayload;
+    const payload = jwt.verify(refreshToken, env.JWT_REFRESH_SECRET, { algorithms: ["HS256"] }) as JwtPayload;
+
+    // Verify user is still active
+    const [user] = await db
+      .select({ isActive: users.isActive, role: users.role })
+      .from(users)
+      .where(eq(users.id, payload.userId));
+
+    if (!user || !user.isActive) {
+      throw new UnauthorizedError("User account is deactivated");
+    }
+
     const tokenPayload: JwtPayload = {
       userId: payload.userId,
       restaurantId: payload.restaurantId,
-      role: payload.role,
+      role: user.role as JwtPayload["role"],
     };
     const accessToken = jwt.sign(tokenPayload, env.JWT_SECRET, { expiresIn: "15m" });
     return { accessToken };
-  } catch {
+  } catch (err) {
+    if (err instanceof UnauthorizedError) throw err;
     throw new UnauthorizedError("Invalid refresh token");
   }
 }

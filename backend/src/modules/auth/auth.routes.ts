@@ -11,8 +11,10 @@ const router = Router();
 // 10 attempts per 15 minutes per IP
 const loginLimiter = rateLimiter(10, 15 * 60 * 1000, "Demasiados intentos de inicio de sesión. Intenta en 15 minutos.");
 
+const refreshLimiter = rateLimiter(30, 15 * 60 * 1000, "Demasiados intentos de refresh. Intenta en 15 minutos.");
+
 router.post("/login", loginLimiter, validate(loginSchema), asyncHandler(authController.login));
-router.post("/refresh", asyncHandler(authController.refresh));
+router.post("/refresh", refreshLimiter, asyncHandler(authController.refresh));
 router.post("/logout", authController.logout);
 router.get("/me", authenticate, asyncHandler(authController.getMe));
 

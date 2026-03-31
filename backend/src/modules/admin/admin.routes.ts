@@ -4,6 +4,8 @@ import bcrypt from "bcrypt";
 import { db } from "../../config/db.js";
 import { users } from "../../db/schema.js";
 import { authenticate, authorize } from "../../middleware/auth.js";
+import { validate } from "../../middleware/validate.js";
+import { createStaffSchema, updateStaffSchema } from "./admin.schema.js";
 import { NotFoundError } from "../../utils/errors.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 
@@ -30,7 +32,7 @@ router.get("/staff", asyncHandler(async (req: Request, res: Response) => {
 }));
 
 // Create staff
-router.post("/staff", asyncHandler(async (req: Request, res: Response) => {
+router.post("/staff", validate(createStaffSchema), asyncHandler(async (req: Request, res: Response) => {
   const { name, email, password, role } = req.body;
   const passwordHash = await bcrypt.hash(password, 12);
 
@@ -56,7 +58,7 @@ router.post("/staff", asyncHandler(async (req: Request, res: Response) => {
 }));
 
 // Update staff
-router.put("/staff/:id", asyncHandler(async (req: Request, res: Response) => {
+router.put("/staff/:id", validate(updateStaffSchema), asyncHandler(async (req: Request, res: Response) => {
   const { name, email, role, isActive } = req.body;
   const updates: Record<string, unknown> = {};
   if (name !== undefined) updates.name = name;
