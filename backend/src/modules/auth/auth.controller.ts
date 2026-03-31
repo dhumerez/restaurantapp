@@ -1,14 +1,16 @@
 import { Request, Response } from "express";
 import * as authService from "./auth.service.js";
+import { env } from "../../config/env.js";
 
 export async function login(req: Request, res: Response) {
   const result = await authService.login(req.body);
 
   res.cookie("refreshToken", result.refreshToken, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
+    secure: env.CORS_ORIGIN.startsWith("https"),
+    sameSite: "lax",
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    path: "/",
   });
 
   res.json({
@@ -29,7 +31,12 @@ export async function refresh(req: Request, res: Response) {
 }
 
 export async function logout(_req: Request, res: Response) {
-  res.clearCookie("refreshToken");
+  res.clearCookie("refreshToken", {
+    httpOnly: true,
+    secure: env.CORS_ORIGIN.startsWith("https"),
+    sameSite: "lax",
+    path: "/",
+  });
   res.json({ message: "Logged out" });
 }
 

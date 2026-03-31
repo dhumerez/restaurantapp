@@ -18,9 +18,10 @@ export function SocketProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    const token = localStorage.getItem("accessToken");
     const newSocket = io(API_URL || window.location.origin, {
-      auth: { token },
+      auth: (cb) => {
+        cb({ token: localStorage.getItem("accessToken") });
+      },
       path: SOCKET_PATH,
       transports: ["websocket", "polling"],
     });
