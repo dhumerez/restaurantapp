@@ -29,11 +29,15 @@ export async function deleteCategory(req: Request, res: Response) {
 
 // ─── Menu Items ──────────────────────────────────────────────
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export async function listMenuItems(req: Request, res: Response) {
-  const items = await menuService.listMenuItems(
-    req.user!.restaurantId,
-    req.query.category as string | undefined
-  );
+  const category = req.query.category as string | undefined;
+  if (category && !UUID_REGEX.test(category)) {
+    res.status(400).json({ error: "Invalid category format" });
+    return;
+  }
+  const items = await menuService.listMenuItems(req.user!.restaurantId, category);
   res.json(items);
 }
 

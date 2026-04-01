@@ -3,13 +3,14 @@ import { useAuth } from "../../context/AuthContext";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  roles?: Array<"admin" | "waiter" | "kitchen" | "superadmin">;
+  roles?: Array<"admin" | "waiter" | "kitchen" | "cashier" | "superadmin">;
 }
 
 const defaultRoutes: Record<string, string> = {
   admin: "/admin",
   waiter: "/tables",
   kitchen: "/kitchen",
+  cashier: "/tables",
   superadmin: "/platform",
 };
 

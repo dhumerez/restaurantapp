@@ -17,6 +17,7 @@ import { OrderPage } from "./pages/waiter/OrderPage";
 import { OrdersListPage } from "./pages/waiter/OrdersListPage";
 import { KitchenDisplayPage } from "./pages/kitchen/KitchenDisplayPage";
 import { TableManagementPage } from "./pages/admin/TableManagementPage";
+import { CashierOrderDetailPage } from "./pages/cashier/CashierOrderDetailPage";
 // Platform (superadmin) pages
 import { PlatformDashboard } from "./pages/platform/PlatformDashboard";
 import { RestaurantsListPage } from "./pages/platform/RestaurantsListPage";
@@ -145,7 +146,7 @@ function AppLayout() {
         <Route
           path="/tables"
           element={
-            <ProtectedRoute roles={["waiter", "admin"]}>
+            <ProtectedRoute roles={["waiter", "admin", "cashier"]}>
               <TablesPage />
             </ProtectedRoute>
           }
@@ -153,7 +154,7 @@ function AppLayout() {
         <Route
           path="/orders"
           element={
-            <ProtectedRoute roles={["waiter", "admin"]}>
+            <ProtectedRoute roles={["waiter", "admin", "cashier"]}>
               <OrdersListPage />
             </ProtectedRoute>
           }
@@ -163,6 +164,16 @@ function AppLayout() {
           element={
             <ProtectedRoute roles={["waiter", "admin"]}>
               <OrderPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Cashier order detail (read-only) */}
+        <Route
+          path="/cashier/order/:id"
+          element={
+            <ProtectedRoute roles={["cashier"]}>
+              <CashierOrderDetailPage />
             </ProtectedRoute>
           }
         />
@@ -196,6 +207,7 @@ function RoleRedirect() {
     admin: "/admin",
     waiter: "/tables",
     kitchen: "/kitchen",
+    cashier: "/tables",
   };
 
   return <Navigate to={routes[user.role] || "/login"} replace />;

@@ -4,7 +4,7 @@ export interface StaffMember {
   id: string;
   name: string;
   email: string;
-  role: "admin" | "waiter" | "kitchen";
+  role: "admin" | "waiter" | "kitchen" | "cashier";
   isActive: boolean;
   createdAt: string;
 }
@@ -18,7 +18,7 @@ export async function createStaff(input: {
   name: string;
   email: string;
   password: string;
-  role: "admin" | "waiter" | "kitchen";
+  role: "admin" | "waiter" | "kitchen" | "cashier";
 }): Promise<StaffMember> {
   const { data } = await client.post<StaffMember>("/admin/staff", input);
   return data;
@@ -30,7 +30,7 @@ export async function updateStaff(
     name: string;
     email: string;
     password: string;
-    role: "admin" | "waiter" | "kitchen";
+    role: "admin" | "waiter" | "kitchen" | "cashier";
     isActive: boolean;
   }>
 ): Promise<StaffMember> {

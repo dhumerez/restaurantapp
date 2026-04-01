@@ -12,13 +12,28 @@ async function enforceOwnership(req: Request, orderId: string) {
   }
 }
 
+const VALID_STATUSES = new Set(["draft", "placed", "preparing", "ready", "served", "cancelled"]);
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export async function listOrders(req: Request, res: Response) {
+  const status = req.query.status as string | undefined;
+  const table = req.query.table as string | undefined;
+
+  if (status && !status.split(",").every((s) => VALID_STATUSES.has(s))) {
+    res.status(400).json({ error: "Invalid status value" });
+    return;
+  }
+  if (table && !UUID_REGEX.test(table)) {
+    res.status(400).json({ error: "Invalid table format" });
+    return;
+  }
+
   // Waiters only see their own orders; admins see all
   const waiterId = req.user!.role === "waiter" ? req.user!.userId : undefined;
   const orders = await ordersService.listOrders(
     req.user!.restaurantId,
-    req.query.status as string | undefined,
-    req.query.table as string | undefined,
+    status,
+    table,
     waiterId
   );
   res.json(orders);

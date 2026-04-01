@@ -162,6 +162,7 @@ export function CreateRestaurantPage() {
                   type="password"
                   required
                   minLength={8}
+                  autoComplete="new-password"
                   value={form.adminPassword}
                   onChange={(e) => setForm((f) => ({ ...f, adminPassword: e.target.value }))}
                   className="w-full px-3 py-2 bg-surface-0 border border-surface-border rounded-lg text-sm text-ink-primary focus:outline-none focus:border-primary-500/50"

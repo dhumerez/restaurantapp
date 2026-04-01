@@ -2,6 +2,7 @@ import { Router } from "express";
 import * as menuController from "./menu.controller.js";
 import { authenticate, authorize } from "../../middleware/auth.js";
 import { validate } from "../../middleware/validate.js";
+import { validateUUID } from "../../middleware/validateUUID.js";
 import {
   createCategorySchema,
   updateCategorySchema,
@@ -15,6 +16,7 @@ const router = Router();
 
 // All routes require authentication
 router.use(authenticate);
+router.param("id", validateUUID("id"));
 
 // Categories
 router.get("/categories", asyncHandler(menuController.listCategories));
