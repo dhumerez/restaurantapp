@@ -58,7 +58,7 @@ export const users = pgTable(
     passwordHash: varchar("password_hash", { length: 255 }).notNull(),
     role: varchar("role", { length: 20 })
       .notNull()
-      .$type<"admin" | "waiter" | "kitchen">(),
+      .$type<"admin" | "waiter" | "kitchen" | "cashier">(),
     isActive: boolean("is_active").default(true).notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },

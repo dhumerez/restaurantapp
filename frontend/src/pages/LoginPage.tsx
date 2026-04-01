@@ -64,6 +64,7 @@ export function LoginPage() {
             <Input
               label="Correo electrónico"
               type="email"
+              autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="admin@demo.com"
@@ -73,6 +74,7 @@ export function LoginPage() {
             <Input
               label="Contraseña"
               type="password"
+              autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"

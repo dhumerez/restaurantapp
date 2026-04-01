@@ -4,6 +4,7 @@ import { db } from "../../config/db.js";
 import { tables } from "../../db/schema.js";
 import { authenticate, authorize } from "../../middleware/auth.js";
 import { validate } from "../../middleware/validate.js";
+import { validateUUID } from "../../middleware/validateUUID.js";
 import { createTableSchema, updateTableSchema } from "./tables.schema.js";
 import { NotFoundError } from "../../utils/errors.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
@@ -11,6 +12,7 @@ import { asyncHandler } from "../../utils/asyncHandler.js";
 const router = Router();
 
 router.use(authenticate);
+router.param("id", validateUUID("id"));
 
 // List tables
 router.get("/", asyncHandler(async (req: Request, res: Response) => {

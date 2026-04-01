@@ -15,7 +15,7 @@ interface NavItem {
   label: string;
   path: string;
   icon: IconType;
-  roles: Array<"admin" | "waiter" | "kitchen" | "superadmin">;
+  roles: Array<"admin" | "waiter" | "kitchen" | "cashier" | "superadmin">;
 }
 
 const navItems: NavItem[] = [
@@ -27,8 +27,8 @@ const navItems: NavItem[] = [
   { label: "Menú",           path: "/admin/menu",   icon: HiOutlineBookOpen,     roles: ["admin"] },
   { label: "Personal",       path: "/admin/staff",  icon: HiOutlineUsers,        roles: ["admin"] },
   { label: "Mesas",          path: "/admin/tables", icon: HiOutlineTable,        roles: ["admin"] },
-  { label: "Mesas",          path: "/tables",       icon: HiOutlineTable,        roles: ["waiter", "admin"] },
-  { label: "Pedidos",        path: "/orders",       icon: HiOutlineClipboardList,roles: ["waiter", "admin"] },
+  { label: "Mesas",          path: "/tables",       icon: HiOutlineTable,        roles: ["waiter", "admin", "cashier"] },
+  { label: "Pedidos",        path: "/orders",       icon: HiOutlineClipboardList,roles: ["waiter", "admin", "cashier"] },
   { label: "Cocina",         path: "/kitchen",      icon: HiOutlineClipboardList,roles: ["kitchen", "admin"] },
 ];
 
@@ -37,6 +37,7 @@ const roleColors: Record<string, string> = {
   admin:   "bg-primary-500/15 text-primary-400 border-primary-500/25",
   waiter:  "bg-blue-500/15 text-blue-400 border-blue-500/25",
   kitchen: "bg-orange-500/15 text-orange-400 border-orange-500/25",
+  cashier: "bg-teal-500/15 text-teal-400 border-teal-500/25",
 };
 
 const roleLabel: Record<string, string> = {
@@ -44,6 +45,7 @@ const roleLabel: Record<string, string> = {
   admin:   "Admin",
   waiter:  "Mesero",
   kitchen: "Cocina",
+  cashier: "Cajero",
 };
 
 export function Sidebar() {

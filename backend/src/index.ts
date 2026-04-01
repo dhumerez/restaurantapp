@@ -11,6 +11,7 @@ import { env } from "./config/env.js";
 import { pool } from "./config/db.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { initSocket } from "./socket/index.js";
+import { rateLimiter } from "./middleware/rateLimiter.js";
 
 // Route imports
 import authRoutes from "./modules/auth/auth.routes.js";
@@ -44,11 +45,15 @@ async function bootstrap() {
 
   app.use(helmet());
   app.use(cors({ origin: env.CORS_ORIGIN, credentials: true }));
-  app.use(express.json());
+  app.use(express.json({ limit: "1mb" }));
   app.use(cookieParser());
 
+  // Global rate limit: 100 requests per minute per IP
+  const globalLimiter = rateLimiter(100, 60 * 1000, "Too many requests. Try again later.");
+  app.use("/api", globalLimiter);
+
   app.get("/api/health", (_req, res) => {
-    res.json({ status: "ok", timestamp: new Date().toISOString() });
+    res.json({ status: "ok" });
   });
 
   app.use("/api/auth", authRoutes);

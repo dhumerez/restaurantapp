@@ -73,10 +73,11 @@ export function StaffManagementPage() {
     admin:   "bg-primary-500/10 text-primary-400 border-primary-500/20",
     waiter:  "bg-blue-500/10 text-blue-400 border-blue-500/20",
     kitchen: "bg-orange-500/10 text-orange-400 border-orange-500/20",
+    cashier: "bg-teal-500/10 text-teal-400 border-teal-500/20",
   };
 
   const roleName = (role: string) =>
-    role === "waiter" ? "Mesero" : role === "kitchen" ? "Cocina" : "Admin";
+    role === "waiter" ? "Mesero" : role === "kitchen" ? "Cocina" : role === "cashier" ? "Cajero" : "Admin";
 
   return (
     <div className="flex-1 bg-surface-0">
@@ -264,6 +265,7 @@ export function StaffManagementPage() {
             <input
               name="password"
               type="password"
+              autoComplete="new-password"
               required={!editing}
               minLength={6}
               className="w-full px-3 py-3 md:py-2.5 bg-surface-2 border border-surface-border rounded-xl text-sm text-ink-primary
@@ -280,6 +282,7 @@ export function StaffManagementPage() {
             >
               <option value="waiter">Mesero</option>
               <option value="kitchen">Cocina</option>
+              <option value="cashier">Cajero</option>
               <option value="admin">Admin</option>
             </select>
           </div>

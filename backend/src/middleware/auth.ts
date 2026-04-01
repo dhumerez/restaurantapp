@@ -6,7 +6,7 @@ import { UnauthorizedError, ForbiddenError } from "../utils/errors.js";
 export interface RestaurantJwtPayload {
   userId: string;
   restaurantId: string;
-  role: "admin" | "waiter" | "kitchen";
+  role: "admin" | "waiter" | "kitchen" | "cashier";
   scope: "restaurant";
 }
 
@@ -27,7 +27,7 @@ declare global {
       user?: {
         userId: string;
         restaurantId: string;
-        role: "admin" | "waiter" | "kitchen" | "superadmin";
+        role: "admin" | "waiter" | "kitchen" | "cashier" | "superadmin";
         scope: "restaurant" | "platform";
       };
     }
@@ -51,7 +51,7 @@ export function authenticate(req: Request, _res: Response, next: NextFunction) {
   }
 }
 
-export function authorize(...roles: Array<"admin" | "waiter" | "kitchen">) {
+export function authorize(...roles: Array<"admin" | "waiter" | "kitchen" | "cashier">) {
   return (req: Request, _res: Response, next: NextFunction) => {
     if (!req.user) {
       throw new UnauthorizedError();

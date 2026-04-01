@@ -5,6 +5,7 @@ import { db } from "../../config/db.js";
 import { users } from "../../db/schema.js";
 import { authenticate, authorize } from "../../middleware/auth.js";
 import { validate } from "../../middleware/validate.js";
+import { validateUUID } from "../../middleware/validateUUID.js";
 import { createStaffSchema, updateStaffSchema } from "./admin.schema.js";
 import { NotFoundError } from "../../utils/errors.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
@@ -13,6 +14,7 @@ const router = Router();
 
 router.use(authenticate);
 router.use(authorize("admin"));
+router.param("id", validateUUID("id"));
 
 // List staff
 router.get("/staff", asyncHandler(async (req: Request, res: Response) => {

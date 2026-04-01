@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { fetchTables, getOrders } from "../../api/orders";
 import { Header } from "../../components/layout/Header";
 import { useSocket } from "../../context/SocketContext";
+import { useAuth } from "../../context/AuthContext";
 import { ordenEstado } from "../../utils/labels";
 import type { Table, Order } from "../../types";
 
@@ -20,6 +21,8 @@ export function TablesPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const socket = useSocket();
+  const { user } = useAuth();
+  const isCashier = user?.role === "cashier";
 
   const { data: tables = [] } = useQuery({
     queryKey: ["tables"],
@@ -61,6 +64,10 @@ export function TablesPage() {
 
   const handleTableClick = (table: Table) => {
     const existingOrder = orderByTable.get(table.id);
+    if (isCashier) {
+      if (existingOrder) navigate(`/cashier/order/${existingOrder.id}`);
+      return;
+    }
     if (existingOrder) {
       navigate(`/order/${existingOrder.id}`);
     } else {

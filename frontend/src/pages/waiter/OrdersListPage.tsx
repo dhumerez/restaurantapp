@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { getOrders } from "../../api/orders";
 import { Header } from "../../components/layout/Header";
 import { useSocket } from "../../context/SocketContext";
+import { useAuth } from "../../context/AuthContext";
 import { ordenEstado } from "../../utils/labels";
 import type { Order } from "../../types";
 
@@ -27,6 +28,8 @@ export function OrdersListPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const socket = useSocket();
+  const { user } = useAuth();
+  const isCashier = user?.role === "cashier";
   const [statusFilter, setStatusFilter] = useState<string>(STATUS_FILTERS[0].value);
 
   const { data: orders = [], isLoading } = useQuery({
@@ -118,7 +121,7 @@ export function OrdersListPage() {
                   {dateOrders.map((order) => (
                     <button
                       key={order.id}
-                      onClick={() => navigate(`/order/${order.id}`)}
+                      onClick={() => navigate(isCashier ? `/cashier/order/${order.id}` : `/order/${order.id}`)}
                       className="w-full bg-surface-1 border border-surface-border rounded-xl p-3 md:p-4 flex items-center gap-3 md:gap-4
                         hover:border-surface-border-light hover:bg-surface-2/30 transition-all text-left group"
                     >

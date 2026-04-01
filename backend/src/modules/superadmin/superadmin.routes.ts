@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { authenticate, authorizeSuperadmin } from "../../middleware/auth.js";
 import { validate } from "../../middleware/validate.js";
+import { validateUUID } from "../../middleware/validateUUID.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { createRestaurantSchema, updateRestaurantSchema } from "./superadmin.schema.js";
 import * as superadminController from "./superadmin.controller.js";
@@ -9,6 +10,7 @@ const router = Router();
 
 router.use(authenticate);
 router.use(authorizeSuperadmin);
+router.param("id", validateUUID("id"));
 
 router.get("/stats", asyncHandler(superadminController.getStats));
 router.get("/restaurants", asyncHandler(superadminController.listRestaurants));

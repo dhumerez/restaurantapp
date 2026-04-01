@@ -8,6 +8,12 @@ export default defineConfig({
     host: true,
     port: 5173,
   },
+  build: {
+    sourcemap: false,
+  },
+  esbuild: {
+    drop: process.env.NODE_ENV === "production" ? ["console", "debugger"] : [],
+  },
   test: {
     globals: true,
     environment: "jsdom",
