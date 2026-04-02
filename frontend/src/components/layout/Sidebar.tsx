@@ -7,6 +7,7 @@ import {
   HiOutlineTable,
   HiOutlineClipboardList,
   HiOutlineLogout,
+  HiOutlineChartBar,
 } from "react-icons/hi";
 import { HiOutlineBuildingStorefront } from "react-icons/hi2";
 import type { IconType } from "react-icons";
@@ -27,6 +28,7 @@ const navItems: NavItem[] = [
   { label: "Menú",           path: "/admin/menu",   icon: HiOutlineBookOpen,     roles: ["admin"] },
   { label: "Personal",       path: "/admin/staff",  icon: HiOutlineUsers,        roles: ["admin"] },
   { label: "Mesas",          path: "/admin/tables", icon: HiOutlineTable,        roles: ["admin"] },
+  { label: "Reportes",       path: "/admin/reports",icon: HiOutlineChartBar,     roles: ["admin"] },
   { label: "Mesas",          path: "/tables",       icon: HiOutlineTable,        roles: ["waiter", "admin", "cashier"] },
   { label: "Pedidos",        path: "/orders",       icon: HiOutlineClipboardList,roles: ["waiter", "admin", "cashier"] },
   { label: "Cocina",         path: "/kitchen",      icon: HiOutlineClipboardList,roles: ["kitchen", "admin"] },

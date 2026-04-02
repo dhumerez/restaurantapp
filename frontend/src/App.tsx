@@ -17,6 +17,7 @@ import { OrderPage } from "./pages/waiter/OrderPage";
 import { OrdersListPage } from "./pages/waiter/OrdersListPage";
 import { KitchenDisplayPage } from "./pages/kitchen/KitchenDisplayPage";
 import { TableManagementPage } from "./pages/admin/TableManagementPage";
+import { ReportsPage } from "./pages/admin/ReportsPage";
 import { CashierOrderDetailPage } from "./pages/cashier/CashierOrderDetailPage";
 // Platform (superadmin) pages
 import { PlatformDashboard } from "./pages/platform/PlatformDashboard";
@@ -138,6 +139,16 @@ function AppLayout() {
           element={
             <ProtectedRoute roles={["admin"]}>
               <TableManagementPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Admin reports */}
+        <Route
+          path="/admin/reports"
+          element={
+            <ProtectedRoute roles={["admin"]}>
+              <ReportsPage />
             </ProtectedRoute>
           }
         />
