@@ -62,6 +62,16 @@ export async function applyDiscount(
   return data;
 }
 
+export async function transferOrder(id: string, tableId: string): Promise<Order> {
+  const { data } = await client.patch<Order>(`/orders/${id}/transfer`, { tableId });
+  return data;
+}
+
+export async function mergeOrders(sourceId: string, targetId: string): Promise<Order> {
+  const { data } = await client.post<Order>(`/orders/${sourceId}/merge/${targetId}`);
+  return data;
+}
+
 // Kitchen
 export async function getKitchenOrders(): Promise<Order[]> {
   const { data } = await client.get<Order[]>("/kitchen/orders");

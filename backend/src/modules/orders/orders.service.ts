@@ -2,7 +2,7 @@ import { eq, and, inArray, sql } from "drizzle-orm";
 import { db } from "../../config/db.js";
 import { orders, orderItems, menuItems, tables, restaurants } from "../../db/schema.js";
 import { NotFoundError, AppError } from "../../utils/errors.js";
-import type { CreateOrderInput, UpdateOrderInput, ApplyDiscountInput } from "./orders.schema.js";
+import type { CreateOrderInput, UpdateOrderInput, ApplyDiscountInput, TransferOrderInput } from "./orders.schema.js";
 
 export async function listOrders(restaurantId: string, status?: string, tableId?: string, waiterId?: string) {
   const conditions = [eq(orders.restaurantId, restaurantId)];
@@ -328,6 +328,109 @@ export async function applyDiscount(restaurantId: string, orderId: string, input
     .where(eq(orders.id, orderId));
 
   return getOrder(restaurantId, orderId);
+}
+
+export async function transferOrder(restaurantId: string, orderId: string, input: TransferOrderInput) {
+  const order = await getOrder(restaurantId, orderId);
+
+  const transferable = ["draft", "placed", "preparing", "ready"];
+  if (!transferable.includes(order.status)) {
+    throw new AppError(400, "Only active orders can be transferred");
+  }
+
+  // Verify target table belongs to restaurant
+  const [table] = await db
+    .select()
+    .from(tables)
+    .where(and(eq(tables.id, input.tableId), eq(tables.restaurantId, restaurantId)));
+
+  if (!table) throw new NotFoundError("Target table not found");
+
+  if (order.tableId === input.tableId) {
+    throw new AppError(400, "Order is already at this table");
+  }
+
+  await db
+    .update(orders)
+    .set({ tableId: input.tableId, updatedAt: new Date() })
+    .where(eq(orders.id, orderId));
+
+  return getOrder(restaurantId, orderId);
+}
+
+export async function mergeOrders(restaurantId: string, sourceId: string, targetId: string) {
+  const source = await getOrder(restaurantId, sourceId);
+  const target = await getOrder(restaurantId, targetId);
+
+  const mergeable = ["placed", "preparing", "ready"];
+  if (!mergeable.includes(source.status)) {
+    throw new AppError(400, "Source order must be placed, preparing, or ready");
+  }
+  if (!mergeable.includes(target.status)) {
+    throw new AppError(400, "Target order must be placed, preparing, or ready");
+  }
+
+  if (sourceId === targetId) {
+    throw new AppError(400, "Cannot merge an order with itself");
+  }
+
+  await db.transaction(async (tx) => {
+    // Move all non-cancelled items from source to target
+    const sourceItems = source.items.filter((i) => i.status !== "cancelled");
+
+    for (const item of sourceItems) {
+      await tx
+        .update(orderItems)
+        .set({ orderId: targetId })
+        .where(eq(orderItems.id, item.id));
+    }
+
+    // Recalculate target totals
+    const allTargetItems = await tx
+      .select()
+      .from(orderItems)
+      .where(and(eq(orderItems.orderId, targetId), sql`${orderItems.status} != 'cancelled'`));
+
+    const subtotal = allTargetItems.reduce(
+      (sum, item) => sum + parseFloat(item.unitPrice) * item.quantity,
+      0
+    );
+
+    // Get restaurant tax rate
+    const [restaurant] = await tx
+      .select()
+      .from(restaurants)
+      .where(eq(restaurants.id, restaurantId));
+
+    const taxRate = parseFloat(restaurant.taxRate);
+
+    // Preserve target's discount
+    const discountType = target.discountType ?? "none";
+    const discountValue = parseFloat(target.discountValue ?? "0");
+    const discountAmount = calcDiscountAmount(discountType, discountValue, subtotal);
+    const discountedSubtotal = subtotal - discountAmount;
+    const tax = discountedSubtotal * (taxRate / 100);
+    const total = discountedSubtotal + tax;
+
+    await tx
+      .update(orders)
+      .set({
+        subtotal: subtotal.toFixed(2),
+        discountAmount: discountAmount.toFixed(2),
+        tax: tax.toFixed(2),
+        total: total.toFixed(2),
+        updatedAt: new Date(),
+      })
+      .where(eq(orders.id, targetId));
+
+    // Cancel the source order (no stock restore — items were moved, not cancelled)
+    await tx
+      .update(orders)
+      .set({ status: "cancelled", updatedAt: new Date() })
+      .where(eq(orders.id, sourceId));
+  });
+
+  return getOrder(restaurantId, targetId);
 }
 
 export async function cancelOrder(restaurantId: string, orderId: string) {

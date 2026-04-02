@@ -94,6 +94,28 @@ export async function applyDiscount(req: Request, res: Response) {
   res.json(order);
 }
 
+export async function transferOrder(req: Request, res: Response) {
+  await enforceOwnership(req, req.params.id as string);
+  const order = await ordersService.transferOrder(
+    req.user!.restaurantId,
+    req.params.id as string,
+    req.body
+  );
+  emitOrderItemUpdated(req.user!.restaurantId, order);
+  res.json(order);
+}
+
+export async function mergeOrders(req: Request, res: Response) {
+  await enforceOwnership(req, req.params.id as string);
+  const order = await ordersService.mergeOrders(
+    req.user!.restaurantId,
+    req.params.id as string,
+    req.params.targetId as string
+  );
+  emitOrderItemUpdated(req.user!.restaurantId, order);
+  res.json(order);
+}
+
 export async function cancelOrder(req: Request, res: Response) {
   await enforceOwnership(req, req.params.id as string);
   const order = await ordersService.cancelOrder(req.user!.restaurantId, req.params.id as string);

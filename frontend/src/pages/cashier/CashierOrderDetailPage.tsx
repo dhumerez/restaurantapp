@@ -10,6 +10,7 @@ import { useSocket } from "../../context/SocketContext";
 import { ordenEstado, itemEstado } from "../../utils/labels";
 import { printReceipt } from "../../utils/printReceipt";
 import { DiscountSection } from "../../components/order/DiscountSection";
+import { TablePickerModal } from "../../components/order/TablePickerModal";
 
 const itemStatusStyles: Record<string, string> = {
   pending:   "bg-blue-500/10 text-blue-400 border-blue-500/20",
@@ -35,6 +36,8 @@ export function CashierOrderDetailPage() {
   const { toast } = useToast();
   const socket = useSocket();
   const [cancelTarget, setCancelTarget] = useState(false);
+  const [showTransfer, setShowTransfer] = useState(false);
+  const [showMergeConfirm, setShowMergeConfirm] = useState<{ sourceId: string; targetId: string; targetTable: number } | null>(null);
 
   const { data: order, isLoading } = useQuery({
     queryKey: ["order", id],
@@ -84,6 +87,40 @@ export function CashierOrderDetailPage() {
     },
     onError: () => toast("Error al cancelar pedido", "error"),
   });
+
+  const transferMut = useMutation({
+    mutationFn: ({ tableId }: { tableId: string }) => ordersApi.transferOrder(id!, tableId),
+    onSuccess: (updatedOrder) => {
+      queryClient.invalidateQueries({ queryKey: ["order", id] });
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+      toast(`Pedido transferido a mesa ${updatedOrder.table?.number}`, "success");
+      setShowTransfer(false);
+    },
+    onError: (err: any) => toast(err?.response?.data?.error ?? "Error al transferir", "error"),
+  });
+
+  const mergeMut = useMutation({
+    mutationFn: ({ sourceId, targetId }: { sourceId: string; targetId: string }) =>
+      ordersApi.mergeOrders(sourceId, targetId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+      toast("Pedidos fusionados", "success");
+      setShowMergeConfirm(null);
+      navigate("/tables");
+    },
+    onError: (err: any) => toast(err?.response?.data?.error ?? "Error al fusionar", "error"),
+  });
+
+  // Find other active orders on the same table for merge
+  const { data: tableOrders = [] } = useQuery({
+    queryKey: ["orders", { table: order?.tableId, active: true }],
+    queryFn: () => ordersApi.getOrders("placed,preparing,ready", order!.tableId),
+    enabled: !!order && ["placed", "preparing", "ready"].includes(order.status),
+  });
+
+  const mergeableOrders = tableOrders.filter(
+    (o) => o.id !== id && ["placed", "preparing", "ready"].includes(o.status)
+  );
 
   if (isLoading) {
     return (
@@ -251,6 +288,43 @@ export function CashierOrderDetailPage() {
             </Button>
           )}
 
+          {/* Transfer & merge — available for active orders */}
+          {["placed", "preparing", "ready"].includes(order.status) && (
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1"
+                onClick={() => setShowTransfer(true)}
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                </svg>
+                Transferir
+              </Button>
+              {mergeableOrders.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => {
+                    const target = mergeableOrders[0]!;
+                    setShowMergeConfirm({
+                      sourceId: id!,
+                      targetId: target.id,
+                      targetTable: target.table?.number ?? 0,
+                    });
+                  }}
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  Fusionar ({mergeableOrders.length})
+                </Button>
+              )}
+            </div>
+          )}
+
           {canCancel && (
             <Button
               variant="ghost"
@@ -288,6 +362,25 @@ export function CashierOrderDetailPage() {
         onConfirm={() => { cancelMut.mutate(); setCancelTarget(false); }}
         onCancel={() => setCancelTarget(false)}
       />
+
+      <TablePickerModal
+        isOpen={showTransfer}
+        title="Transferir pedido"
+        currentTableId={order.tableId}
+        onSelect={(table) => transferMut.mutate({ tableId: table.id })}
+        onCancel={() => setShowTransfer(false)}
+      />
+
+      {showMergeConfirm && (
+        <ConfirmDialog
+          isOpen
+          title="Fusionar pedidos"
+          message={`¿Fusionar este pedido con el otro pedido activo de la mesa ${showMergeConfirm.targetTable}? Los ítems se moverán al pedido destino y este pedido se cancelará.`}
+          confirmLabel="Fusionar"
+          onConfirm={() => mergeMut.mutate({ sourceId: showMergeConfirm.sourceId, targetId: showMergeConfirm.targetId })}
+          onCancel={() => setShowMergeConfirm(null)}
+        />
+      )}
     </div>
   );
 }

@@ -22,7 +22,12 @@ export const applyDiscountSchema = z.object({
   discountReason: z.string().optional(),
 });
 
+export const transferOrderSchema = z.object({
+  tableId: z.string().uuid(),
+});
+
 export type CreateOrderInput = z.infer<typeof createOrderSchema>;
 export type UpdateOrderInput = z.infer<typeof updateOrderSchema>;
 export type ApplyDiscountInput = z.infer<typeof applyDiscountSchema>;
+export type TransferOrderInput = z.infer<typeof transferOrderSchema>;
 export type OrderItemInput = z.infer<typeof orderItemSchema>;
