@@ -164,6 +164,13 @@ export const orders = pgTable("orders", {
     .notNull()
     .$type<"draft" | "placed" | "preparing" | "ready" | "served" | "cancelled">(),
   notes: text("notes"),
+  discountType: varchar("discount_type", { length: 20 })
+    .default("none")
+    .notNull()
+    .$type<"none" | "percentage" | "fixed">(),
+  discountValue: decimal("discount_value", { precision: 10, scale: 2 }).default("0.00").notNull(),
+  discountAmount: decimal("discount_amount", { precision: 10, scale: 2 }).default("0.00").notNull(),
+  discountReason: text("discount_reason"),
   subtotal: decimal("subtotal", { precision: 10, scale: 2 }).default("0.00").notNull(),
   tax: decimal("tax", { precision: 10, scale: 2 }).default("0.00").notNull(),
   total: decimal("total", { precision: 10, scale: 2 }).default("0.00").notNull(),

@@ -3,7 +3,7 @@ import * as ordersController from "./orders.controller.js";
 import { authenticate, authorize } from "../../middleware/auth.js";
 import { validate } from "../../middleware/validate.js";
 import { validateUUID } from "../../middleware/validateUUID.js";
-import { createOrderSchema, updateOrderSchema } from "./orders.schema.js";
+import { createOrderSchema, updateOrderSchema, applyDiscountSchema } from "./orders.schema.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 
 const router = Router();
@@ -26,6 +26,12 @@ router.put(
   asyncHandler(ordersController.updateOrder)
 );
 router.post("/:id/place", authorize("waiter", "admin"), asyncHandler(ordersController.placeOrder));
+router.patch(
+  "/:id/discount",
+  authorize("admin", "cashier", "waiter"),
+  validate(applyDiscountSchema),
+  asyncHandler(ordersController.applyDiscount)
+);
 router.patch("/:id/serve", authorize("waiter", "admin", "cashier"), asyncHandler(ordersController.serveOrder));
 router.patch(
   "/:id/cancel",

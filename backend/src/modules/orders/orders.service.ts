@@ -2,7 +2,7 @@ import { eq, and, inArray, sql } from "drizzle-orm";
 import { db } from "../../config/db.js";
 import { orders, orderItems, menuItems, tables, restaurants } from "../../db/schema.js";
 import { NotFoundError, AppError } from "../../utils/errors.js";
-import type { CreateOrderInput, UpdateOrderInput } from "./orders.schema.js";
+import type { CreateOrderInput, UpdateOrderInput, ApplyDiscountInput } from "./orders.schema.js";
 
 export async function listOrders(restaurantId: string, status?: string, tableId?: string, waiterId?: string) {
   const conditions = [eq(orders.restaurantId, restaurantId)];
@@ -186,13 +186,20 @@ export async function updateOrder(
     .where(eq(restaurants.id, restaurantId));
 
   const taxRate = parseFloat(restaurant.taxRate);
-  const tax = subtotal * (taxRate / 100);
-  const total = subtotal + tax;
+
+  // Preserve existing discount
+  const discountType = order.discountType ?? "none";
+  const discountValue = parseFloat(order.discountValue ?? "0");
+  const discountAmount = calcDiscountAmount(discountType, discountValue, subtotal);
+  const discountedSubtotal = subtotal - discountAmount;
+  const tax = discountedSubtotal * (taxRate / 100);
+  const total = discountedSubtotal + tax;
 
   const [updated] = await db
     .update(orders)
     .set({
       subtotal: subtotal.toFixed(2),
+      discountAmount: discountAmount.toFixed(2),
       tax: tax.toFixed(2),
       total: total.toFixed(2),
       notes: input.notes,
@@ -265,6 +272,60 @@ export async function serveOrder(restaurantId: string, orderId: string) {
     .update(orderItems)
     .set({ status: "served" })
     .where(eq(orderItems.orderId, orderId));
+
+  return getOrder(restaurantId, orderId);
+}
+
+function calcDiscountAmount(type: string, value: number, subtotal: number): number {
+  if (type === "percentage") return Math.min(subtotal, subtotal * (value / 100));
+  if (type === "fixed") return Math.min(subtotal, value);
+  return 0;
+}
+
+export async function applyDiscount(restaurantId: string, orderId: string, input: ApplyDiscountInput) {
+  const order = await getOrder(restaurantId, orderId);
+
+  if (order.status === "cancelled") {
+    throw new AppError(400, "Cannot apply discount to a cancelled order");
+  }
+  if (order.status === "draft") {
+    throw new AppError(400, "Cannot apply discount to a draft order");
+  }
+
+  const subtotal = parseFloat(order.subtotal);
+
+  if (input.discountType === "percentage" && input.discountValue > 100) {
+    throw new AppError(400, "Percentage discount cannot exceed 100%");
+  }
+  if (input.discountType === "fixed" && input.discountValue > subtotal) {
+    throw new AppError(400, "Fixed discount cannot exceed subtotal");
+  }
+
+  const discountAmount = calcDiscountAmount(input.discountType, input.discountValue, subtotal);
+  const discountedSubtotal = subtotal - discountAmount;
+
+  // Get restaurant tax rate
+  const [restaurant] = await db
+    .select()
+    .from(restaurants)
+    .where(eq(restaurants.id, restaurantId));
+
+  const taxRate = parseFloat(restaurant.taxRate);
+  const tax = discountedSubtotal * (taxRate / 100);
+  const total = discountedSubtotal + tax;
+
+  await db
+    .update(orders)
+    .set({
+      discountType: input.discountType,
+      discountValue: input.discountValue.toFixed(2),
+      discountAmount: discountAmount.toFixed(2),
+      discountReason: input.discountReason ?? null,
+      tax: tax.toFixed(2),
+      total: total.toFixed(2),
+      updatedAt: new Date(),
+    })
+    .where(eq(orders.id, orderId));
 
   return getOrder(restaurantId, orderId);
 }

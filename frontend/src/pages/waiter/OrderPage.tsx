@@ -9,6 +9,7 @@ import { useToast } from "../../components/ui/Toast";
 import { useSocket } from "../../context/SocketContext";
 import { ordenEstado, itemEstado } from "../../utils/labels";
 import { printReceipt } from "../../utils/printReceipt";
+import { DiscountSection } from "../../components/order/DiscountSection";
 import type { CartItem } from "../../types";
 
 const itemStatusStyles: Record<string, string> = {
@@ -400,6 +401,10 @@ export function OrderPage() {
               <span>Subtotal</span>
               <span>Bs. {parseFloat(existingOrder.subtotal).toFixed(2)}</span>
             </div>
+            <DiscountSection
+              order={existingOrder}
+              onApplied={() => queryClient.invalidateQueries({ queryKey: ["order", orderId] })}
+            />
             <div className="flex justify-between text-xs text-ink-muted">
               <span>Impuesto</span>
               <span>Bs. {parseFloat(existingOrder.tax).toFixed(2)}</span>

@@ -16,6 +16,13 @@ export const updateOrderSchema = z.object({
   notes: z.string().optional(),
 });
 
+export const applyDiscountSchema = z.object({
+  discountType: z.enum(["none", "percentage", "fixed"]),
+  discountValue: z.number().min(0),
+  discountReason: z.string().optional(),
+});
+
 export type CreateOrderInput = z.infer<typeof createOrderSchema>;
 export type UpdateOrderInput = z.infer<typeof updateOrderSchema>;
+export type ApplyDiscountInput = z.infer<typeof applyDiscountSchema>;
 export type OrderItemInput = z.infer<typeof orderItemSchema>;

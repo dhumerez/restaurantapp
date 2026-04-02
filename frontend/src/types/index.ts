@@ -44,6 +44,10 @@ export interface Order {
   waiterId: string;
   status: "draft" | "placed" | "preparing" | "ready" | "served" | "cancelled";
   notes: string | null;
+  discountType: "none" | "percentage" | "fixed";
+  discountValue: string;
+  discountAmount: string;
+  discountReason: string | null;
   subtotal: string;
   tax: string;
   total: string;

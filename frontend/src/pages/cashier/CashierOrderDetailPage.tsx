@@ -9,6 +9,7 @@ import { useToast } from "../../components/ui/Toast";
 import { useSocket } from "../../context/SocketContext";
 import { ordenEstado, itemEstado } from "../../utils/labels";
 import { printReceipt } from "../../utils/printReceipt";
+import { DiscountSection } from "../../components/order/DiscountSection";
 
 const itemStatusStyles: Record<string, string> = {
   pending:   "bg-blue-500/10 text-blue-400 border-blue-500/20",
@@ -213,6 +214,13 @@ export function CashierOrderDetailPage() {
               <span>Subtotal</span>
               <span>Bs. {parseFloat(order.subtotal).toFixed(2)}</span>
             </div>
+            <DiscountSection
+              order={order}
+              onApplied={() => {
+                queryClient.invalidateQueries({ queryKey: ["order", id] });
+                queryClient.invalidateQueries({ queryKey: ["orders"] });
+              }}
+            />
             <div className="flex justify-between text-sm text-ink-muted">
               <span>Impuesto</span>
               <span>Bs. {parseFloat(order.tax).toFixed(2)}</span>

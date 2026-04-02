@@ -45,6 +45,9 @@ export function printReceipt(order: Order) {
   <div class="divider"></div>
   <table>
     <tr><td>Subtotal</td><td style="text-align:right">Bs. ${parseFloat(order.subtotal).toFixed(2)}</td></tr>
+    ${order.discountType !== "none" && parseFloat(order.discountAmount) > 0
+      ? `<tr><td>Descuento${order.discountType === "percentage" ? ` (${parseFloat(order.discountValue)}%)` : ""}${order.discountReason ? ` — ${esc(order.discountReason)}` : ""}</td><td style="text-align:right;color:#16a34a">−Bs. ${parseFloat(order.discountAmount).toFixed(2)}</td></tr>`
+      : ""}
     <tr><td>Impuesto</td><td style="text-align:right">Bs. ${parseFloat(order.tax).toFixed(2)}</td></tr>
     <tr class="total-row"><td>Total</td><td style="text-align:right">Bs. ${parseFloat(order.total).toFixed(2)}</td></tr>
   </table>

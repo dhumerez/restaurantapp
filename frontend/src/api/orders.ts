@@ -48,6 +48,20 @@ export async function cancelOrder(id: string): Promise<Order> {
   return data;
 }
 
+export async function applyDiscount(
+  id: string,
+  discountType: "none" | "percentage" | "fixed",
+  discountValue: number,
+  discountReason?: string
+): Promise<Order> {
+  const { data } = await client.patch<Order>(`/orders/${id}/discount`, {
+    discountType,
+    discountValue,
+    discountReason,
+  });
+  return data;
+}
+
 // Kitchen
 export async function getKitchenOrders(): Promise<Order[]> {
   const { data } = await client.get<Order[]>("/kitchen/orders");

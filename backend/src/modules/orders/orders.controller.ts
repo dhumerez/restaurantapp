@@ -84,6 +84,16 @@ export async function serveOrder(req: Request, res: Response) {
   res.json(order);
 }
 
+export async function applyDiscount(req: Request, res: Response) {
+  const order = await ordersService.applyDiscount(
+    req.user!.restaurantId,
+    req.params.id as string,
+    req.body
+  );
+  emitOrderItemUpdated(req.user!.restaurantId, order);
+  res.json(order);
+}
+
 export async function cancelOrder(req: Request, res: Response) {
   await enforceOwnership(req, req.params.id as string);
   const order = await ordersService.cancelOrder(req.user!.restaurantId, req.params.id as string);
