@@ -60,3 +60,14 @@ export async function updateStock(id: string, stockCount: number | null): Promis
   const { data } = await client.patch<MenuItem>(`/menu-items/${id}/stock`, { stockCount });
   return data;
 }
+
+export async function uploadImage(id: string, file: File): Promise<MenuItem> {
+  const form = new FormData();
+  form.append("image", file);
+  const { data } = await client.post<MenuItem>(`/menu-items/${id}/image`, form);
+  return data;
+}
+
+export async function deleteImage(id: string): Promise<void> {
+  await client.delete(`/menu-items/${id}/image`);
+}

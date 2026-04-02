@@ -607,7 +607,7 @@ export function OrderPage() {
                     key={item.id}
                     disabled={outOfStock || (!isDraft && !isEditing)}
                     onClick={() => addToCart(item)}
-                    className={`p-3 md:p-3.5 rounded-xl border text-left transition-all relative ${
+                    className={`rounded-xl border text-left transition-all relative overflow-hidden ${
                       outOfStock
                         ? "opacity-40 cursor-not-allowed bg-surface-1 border-surface-border"
                         : (isDraft || isEditing)
@@ -615,21 +615,28 @@ export function OrderPage() {
                           : "bg-surface-1 border-surface-border opacity-60 cursor-default"
                     } ${inCart ? "border-primary-500/30 bg-primary-500/5" : ""}`}
                   >
-                    {inCart && (
-                      <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-primary-500 text-ink-inverse text-xs font-bold flex items-center justify-center">
-                        {inCart.quantity}
-                      </span>
+                    {item.imageUrl && (
+                      <div className="aspect-[16/10] bg-surface-2">
+                        <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                      </div>
                     )}
-                    <div className="text-xs md:text-sm font-medium text-ink-primary pr-6 leading-snug">{item.name}</div>
-                    <div className="flex items-center justify-between mt-1.5">
-                      <span className="text-xs md:text-sm font-semibold text-primary-400">
-                        Bs. {parseFloat(item.price).toFixed(2)}
-                      </span>
-                      {item.stockCount !== null && (
-                        <span className={`text-[10px] md:text-xs ${outOfStock ? "text-red-400" : "text-ink-muted"}`}>
-                          {outOfStock ? "Sin stock" : `${item.stockCount}`}
+                    <div className="p-3 md:p-3.5">
+                      {inCart && (
+                        <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-primary-500 text-ink-inverse text-xs font-bold flex items-center justify-center">
+                          {inCart.quantity}
                         </span>
                       )}
+                      <div className="text-xs md:text-sm font-medium text-ink-primary pr-6 leading-snug">{item.name}</div>
+                      <div className="flex items-center justify-between mt-1.5">
+                        <span className="text-xs md:text-sm font-semibold text-primary-400">
+                          Bs. {parseFloat(item.price).toFixed(2)}
+                        </span>
+                        {item.stockCount !== null && (
+                          <span className={`text-[10px] md:text-xs ${outOfStock ? "text-red-400" : "text-ink-muted"}`}>
+                            {outOfStock ? "Sin stock" : `${item.stockCount}`}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </button>
                 );

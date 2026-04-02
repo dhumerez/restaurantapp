@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import * as menuService from "./menu.service.js";
+import * as imageService from "./image.service.js";
 
 // ─── Categories ──────────────────────────────────────────────
 
@@ -67,4 +68,47 @@ export async function updateStock(req: Request, res: Response) {
     req.body.stockCount
   );
   res.json(item);
+}
+
+// ─── Image Upload ───────────────────────────────────────────
+
+export async function uploadImage(req: Request, res: Response) {
+  if (!req.file) {
+    res.status(400).json({ error: "No image file provided" });
+    return;
+  }
+
+  const restaurantId = req.user!.restaurantId;
+  const menuItemId = req.params.id as string;
+
+  // Verify item exists and belongs to restaurant
+  const existing = await menuService.getMenuItem(restaurantId, menuItemId);
+
+  // Delete old image if exists
+  if (existing.imageUrl) {
+    await imageService.deleteImage(existing.imageUrl).catch(() => {});
+  }
+
+  const imageUrl = await imageService.processAndUpload(
+    req.file.buffer,
+    restaurantId,
+    menuItemId,
+  );
+
+  const item = await menuService.updateImageUrl(restaurantId, menuItemId, imageUrl);
+  res.json(item);
+}
+
+export async function deleteImage(req: Request, res: Response) {
+  const restaurantId = req.user!.restaurantId;
+  const menuItemId = req.params.id as string;
+
+  const existing = await menuService.getMenuItem(restaurantId, menuItemId);
+
+  if (existing.imageUrl) {
+    await imageService.deleteImage(existing.imageUrl).catch(() => {});
+    await menuService.updateImageUrl(restaurantId, menuItemId, null);
+  }
+
+  res.status(204).end();
 }

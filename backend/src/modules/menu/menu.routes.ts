@@ -1,4 +1,5 @@
 import { Router } from "express";
+import multer from "multer";
 import * as menuController from "./menu.controller.js";
 import { authenticate, authorize } from "../../middleware/auth.js";
 import { validate } from "../../middleware/validate.js";
@@ -11,6 +12,18 @@ import {
   updateStockSchema,
 } from "./menu.schema.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
+  fileFilter: (_req, file, cb) => {
+    if (file.mimetype.startsWith("image/")) {
+      cb(null, true);
+    } else {
+      cb(new Error("Only image files are allowed"));
+    }
+  },
+});
 
 const router = Router();
 
@@ -54,6 +67,19 @@ router.patch(
   authorize("admin"),
   validate(updateStockSchema),
   asyncHandler(menuController.updateStock)
+);
+
+// Image upload/delete
+router.post(
+  "/menu-items/:id/image",
+  authorize("admin"),
+  upload.single("image"),
+  asyncHandler(menuController.uploadImage)
+);
+router.delete(
+  "/menu-items/:id/image",
+  authorize("admin"),
+  asyncHandler(menuController.deleteImage)
 );
 
 export default router;

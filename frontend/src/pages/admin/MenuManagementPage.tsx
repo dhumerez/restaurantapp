@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import * as menuApi from "../../api/menu";
 import { Header } from "../../components/layout/Header";
@@ -81,6 +81,23 @@ export function MenuManagementPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["menuItems"] });
       toast("Ítem eliminado", "success");
+    },
+  });
+
+  const uploadImageMut = useMutation({
+    mutationFn: ({ id, file }: { id: string; file: File }) => menuApi.uploadImage(id, file),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["menuItems"] });
+      toast("Imagen subida", "success");
+    },
+    onError: () => toast("Error al subir imagen", "error"),
+  });
+
+  const deleteImageMut = useMutation({
+    mutationFn: menuApi.deleteImage,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["menuItems"] });
+      toast("Imagen eliminada", "success");
     },
   });
 
@@ -202,44 +219,15 @@ export function MenuManagementPage() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {menuItems.map((item) => (
-                <div
+                <MenuItemCard
                   key={item.id}
-                  className="bg-surface-1 border border-surface-border rounded-xl p-4 hover:border-surface-border-light transition-colors group"
-                >
-                  <div className="flex justify-between items-start mb-2">
-                    <h4 className="font-medium text-ink-primary text-sm leading-snug flex-1 pr-2">{item.name}</h4>
-                    <span className="text-base font-semibold text-primary-400 shrink-0 font-mono tabular-nums">
-                      Bs. {parseFloat(item.price).toFixed(2)}
-                    </span>
-                  </div>
-                  {item.description && (
-                    <p className="text-xs text-ink-muted mb-3 leading-relaxed">{item.description}</p>
-                  )}
-                  <div className="flex items-center justify-between mt-auto pt-2 border-t border-surface-border">
-                    <span className="text-xs text-ink-muted">
-                      {item.stockCount !== null ? `${item.stockCount} en stock` : "Ilimitado"}
-                    </span>
-                    {/* Mobile: always visible; Desktop: show on hover */}
-                    <div className="flex gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
-                      <button
-                        className="p-2 text-ink-muted hover:text-primary-400 hover:bg-primary-500/10 rounded-lg transition-colors"
-                        onClick={() => { setEditingItem(item); setItemModal(true); }}
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                        </svg>
-                      </button>
-                      <button
-                        className="p-2 text-ink-muted hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
-                        onClick={() => deleteItemMut.mutate(item.id)}
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                  item={item}
+                  onEdit={() => { setEditingItem(item); setItemModal(true); }}
+                  onDelete={() => deleteItemMut.mutate(item.id)}
+                  onUploadImage={(file) => uploadImageMut.mutate({ id: item.id, file })}
+                  onDeleteImage={() => deleteImageMut.mutate(item.id)}
+                  isUploading={uploadImageMut.isPending}
+                />
               ))}
             </div>
           )}
@@ -408,5 +396,124 @@ function MenuItemForm({
         {initial ? "Actualizar ítem" : "Crear ítem"}
       </Button>
     </form>
+  );
+}
+
+function MenuItemCard({
+  item,
+  onEdit,
+  onDelete,
+  onUploadImage,
+  onDeleteImage,
+  isUploading,
+}: {
+  item: MenuItem;
+  onEdit: () => void;
+  onDelete: () => void;
+  onUploadImage: (file: File) => void;
+  onDeleteImage: () => void;
+  isUploading: boolean;
+}) {
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  return (
+    <div className="bg-surface-1 border border-surface-border rounded-xl overflow-hidden hover:border-surface-border-light transition-colors group">
+      {/* Image area */}
+      <div className="relative aspect-[16/10] bg-surface-2">
+        {item.imageUrl ? (
+          <>
+            <img
+              src={item.imageUrl}
+              alt={item.name}
+              className="w-full h-full object-cover"
+            />
+            <button
+              onClick={onDeleteImage}
+              className="absolute top-2 right-2 w-7 h-7 rounded-lg bg-black/50 hover:bg-red-500/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
+              title="Eliminar imagen"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </>
+        ) : (
+          <button
+            onClick={() => fileRef.current?.click()}
+            disabled={isUploading}
+            className="w-full h-full flex flex-col items-center justify-center text-ink-muted hover:text-primary-400 hover:bg-surface-2/80 transition-colors"
+          >
+            {isUploading ? (
+              <span className="text-xs">Subiendo...</span>
+            ) : (
+              <>
+                <svg className="w-8 h-8 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span className="text-[10px]">Agregar imagen</span>
+              </>
+            )}
+          </button>
+        )}
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) onUploadImage(file);
+            e.target.value = "";
+          }}
+        />
+      </div>
+
+      {/* Content */}
+      <div className="p-4">
+        <div className="flex justify-between items-start mb-2">
+          <h4 className="font-medium text-ink-primary text-sm leading-snug flex-1 pr-2">{item.name}</h4>
+          <span className="text-base font-semibold text-primary-400 shrink-0 font-mono tabular-nums">
+            Bs. {parseFloat(item.price).toFixed(2)}
+          </span>
+        </div>
+        {item.description && (
+          <p className="text-xs text-ink-muted mb-3 leading-relaxed">{item.description}</p>
+        )}
+        <div className="flex items-center justify-between mt-auto pt-2 border-t border-surface-border">
+          <span className="text-xs text-ink-muted">
+            {item.stockCount !== null ? `${item.stockCount} en stock` : "Ilimitado"}
+          </span>
+          <div className="flex gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+            {item.imageUrl && (
+              <button
+                className="p-2 text-ink-muted hover:text-primary-400 hover:bg-primary-500/10 rounded-lg transition-colors"
+                onClick={() => fileRef.current?.click()}
+                title="Cambiar imagen"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </button>
+            )}
+            <button
+              className="p-2 text-ink-muted hover:text-primary-400 hover:bg-primary-500/10 rounded-lg transition-colors"
+              onClick={onEdit}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+              </svg>
+            </button>
+            <button
+              className="p-2 text-ink-muted hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+              onClick={onDelete}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

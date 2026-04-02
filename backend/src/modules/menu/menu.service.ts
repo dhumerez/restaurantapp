@@ -74,6 +74,16 @@ export async function listMenuItems(restaurantId: string, categoryId?: string) {
     .orderBy(menuItems.sortOrder);
 }
 
+export async function getMenuItem(restaurantId: string, id: string) {
+  const [item] = await db
+    .select()
+    .from(menuItems)
+    .where(and(eq(menuItems.id, id), eq(menuItems.restaurantId, restaurantId)));
+
+  if (!item) throw new NotFoundError("Menu item not found");
+  return item;
+}
+
 export async function createMenuItem(restaurantId: string, input: CreateMenuItemInput) {
   const [item] = await db
     .insert(menuItems)
@@ -99,6 +109,17 @@ export async function updateMenuItem(
   const [item] = await db
     .update(menuItems)
     .set(values)
+    .where(and(eq(menuItems.id, id), eq(menuItems.restaurantId, restaurantId)))
+    .returning();
+
+  if (!item) throw new NotFoundError("Menu item not found");
+  return item;
+}
+
+export async function updateImageUrl(restaurantId: string, id: string, imageUrl: string | null) {
+  const [item] = await db
+    .update(menuItems)
+    .set({ imageUrl, updatedAt: new Date() })
     .where(and(eq(menuItems.id, id), eq(menuItems.restaurantId, restaurantId)))
     .returning();
 
