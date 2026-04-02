@@ -44,6 +44,7 @@ router.post(
   authorize("waiter", "admin", "cashier"),
   asyncHandler(ordersController.mergeOrders)
 );
+router.get("/:id/events", asyncHandler(ordersController.getOrderEvents));
 router.patch("/:id/serve", authorize("waiter", "admin", "cashier"), asyncHandler(ordersController.serveOrder));
 router.patch(
   "/:id/cancel",

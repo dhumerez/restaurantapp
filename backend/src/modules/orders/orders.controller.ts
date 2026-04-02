@@ -53,6 +53,9 @@ export async function createOrder(req: Request, res: Response) {
     req.user!.userId,
     req.body
   );
+  await ordersService.logEvent(order.id, req.user!.userId, "created", {
+    tableId: req.body.tableId,
+  });
   res.status(201).json(order);
 }
 
@@ -63,6 +66,9 @@ export async function updateOrder(req: Request, res: Response) {
     req.params.id as string,
     req.body
   );
+  await ordersService.logEvent(order.id, req.user!.userId, "items_updated", {
+    itemCount: req.body.items.length,
+  });
   // Notify all users when an active order is edited
   if (order.status !== "draft") {
     emitOrderItemUpdated(req.user!.restaurantId, order);
@@ -73,6 +79,7 @@ export async function updateOrder(req: Request, res: Response) {
 export async function placeOrder(req: Request, res: Response) {
   await enforceOwnership(req, req.params.id as string);
   const order = await ordersService.placeOrder(req.user!.restaurantId, req.params.id as string);
+  await ordersService.logEvent(order.id, req.user!.userId, "placed");
   emitOrderNew(req.user!.restaurantId, order);
   res.json(order);
 }
@@ -80,6 +87,7 @@ export async function placeOrder(req: Request, res: Response) {
 export async function serveOrder(req: Request, res: Response) {
   await enforceOwnership(req, req.params.id as string);
   const order = await ordersService.serveOrder(req.user!.restaurantId, req.params.id as string);
+  await ordersService.logEvent(order.id, req.user!.userId, "served");
   emitOrderItemUpdated(req.user!.restaurantId, order);
   res.json(order);
 }
@@ -90,17 +98,27 @@ export async function applyDiscount(req: Request, res: Response) {
     req.params.id as string,
     req.body
   );
+  await ordersService.logEvent(order.id, req.user!.userId, "discount_applied", {
+    discountType: req.body.discountType,
+    discountValue: req.body.discountValue,
+    discountReason: req.body.discountReason,
+  });
   emitOrderItemUpdated(req.user!.restaurantId, order);
   res.json(order);
 }
 
 export async function transferOrder(req: Request, res: Response) {
   await enforceOwnership(req, req.params.id as string);
+  const oldOrder = await ordersService.getOrder(req.user!.restaurantId, req.params.id as string);
   const order = await ordersService.transferOrder(
     req.user!.restaurantId,
     req.params.id as string,
     req.body
   );
+  await ordersService.logEvent(order.id, req.user!.userId, "transferred", {
+    fromTableId: oldOrder.tableId,
+    toTableId: req.body.tableId,
+  });
   emitOrderItemUpdated(req.user!.restaurantId, order);
   res.json(order);
 }
@@ -112,6 +130,9 @@ export async function mergeOrders(req: Request, res: Response) {
     req.params.id as string,
     req.params.targetId as string
   );
+  await ordersService.logEvent(order.id, req.user!.userId, "merged", {
+    sourceOrderId: req.params.id,
+  });
   emitOrderItemUpdated(req.user!.restaurantId, order);
   res.json(order);
 }
@@ -119,6 +140,18 @@ export async function mergeOrders(req: Request, res: Response) {
 export async function cancelOrder(req: Request, res: Response) {
   await enforceOwnership(req, req.params.id as string);
   const order = await ordersService.cancelOrder(req.user!.restaurantId, req.params.id as string);
+  await ordersService.logEvent(order.id, req.user!.userId, "cancelled");
   emitOrderCancelled(req.user!.restaurantId, order);
   res.json(order);
+}
+
+export async function getOrderEvents(req: Request, res: Response) {
+  if (req.user!.role === "waiter") {
+    const order = await ordersService.getOrder(req.user!.restaurantId, req.params.id as string);
+    if (order.waiterId !== req.user!.userId) {
+      throw new ForbiddenError("You can only view your own orders");
+    }
+  }
+  const events = await ordersService.getOrderEvents(req.user!.restaurantId, req.params.id as string);
+  res.json(events);
 }

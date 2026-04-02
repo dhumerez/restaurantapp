@@ -10,6 +10,7 @@ import { useSocket } from "../../context/SocketContext";
 import { ordenEstado, itemEstado } from "../../utils/labels";
 import { printReceipt } from "../../utils/printReceipt";
 import { DiscountSection } from "../../components/order/DiscountSection";
+import { ActivityLog } from "../../components/order/ActivityLog";
 import { TablePickerModal } from "../../components/order/TablePickerModal";
 import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import type { CartItem } from "../../types";
@@ -448,6 +449,7 @@ export function OrderPage() {
               <span>Impuesto</span>
               <span>Bs. {parseFloat(existingOrder.tax).toFixed(2)}</span>
             </div>
+            <ActivityLog orderId={existingOrder.id} />
           </div>
         )}
 

@@ -77,3 +77,24 @@ export interface CartItem {
   quantity: number;
   notes?: string;
 }
+
+export interface OrderEvent {
+  id: string;
+  orderId: string;
+  userId: string;
+  action:
+    | "created"
+    | "items_updated"
+    | "placed"
+    | "status_changed"
+    | "item_status_changed"
+    | "transferred"
+    | "merged"
+    | "discount_applied"
+    | "served"
+    | "cancelled";
+  details: Record<string, unknown> | null;
+  createdAt: string;
+  userName: string;
+  userRole: string;
+}

@@ -10,6 +10,7 @@ import { useSocket } from "../../context/SocketContext";
 import { ordenEstado, itemEstado } from "../../utils/labels";
 import { printReceipt } from "../../utils/printReceipt";
 import { DiscountSection } from "../../components/order/DiscountSection";
+import { ActivityLog } from "../../components/order/ActivityLog";
 import { TablePickerModal } from "../../components/order/TablePickerModal";
 
 const itemStatusStyles: Record<string, string> = {
@@ -268,6 +269,7 @@ export function CashierOrderDetailPage() {
                 Bs. {parseFloat(order.total).toFixed(2)}
               </span>
             </div>
+            <ActivityLog orderId={order.id} />
           </div>
         </div>
 

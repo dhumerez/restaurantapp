@@ -8,6 +8,7 @@ import {
   boolean,
   timestamp,
   unique,
+  jsonb,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
@@ -192,6 +193,7 @@ export const ordersRelations = relations(orders, ({ one, many }) => ({
     references: [users.id],
   }),
   items: many(orderItems),
+  events: many(orderEvents),
 }));
 
 // ─── Order Items ─────────────────────────────────────────────
@@ -222,5 +224,43 @@ export const orderItemsRelations = relations(orderItems, ({ one }) => ({
   menuItem: one(menuItems, {
     fields: [orderItems.menuItemId],
     references: [menuItems.id],
+  }),
+}));
+
+// ─── Order Events (Audit Trail) ─────────────────────────────
+export const orderEvents = pgTable("order_events", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  orderId: uuid("order_id")
+    .notNull()
+    .references(() => orders.id, { onDelete: "cascade" }),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id),
+  action: varchar("action", { length: 30 })
+    .notNull()
+    .$type<
+      | "created"
+      | "items_updated"
+      | "placed"
+      | "status_changed"
+      | "item_status_changed"
+      | "transferred"
+      | "merged"
+      | "discount_applied"
+      | "served"
+      | "cancelled"
+    >(),
+  details: jsonb("details").$type<Record<string, unknown>>(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const orderEventsRelations = relations(orderEvents, ({ one }) => ({
+  order: one(orders, {
+    fields: [orderEvents.orderId],
+    references: [orders.id],
+  }),
+  user: one(users, {
+    fields: [orderEvents.userId],
+    references: [users.id],
   }),
 }));

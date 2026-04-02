@@ -1,5 +1,5 @@
 import client from "./client";
-import type { Order, Table } from "../types";
+import type { Order, Table, OrderEvent } from "../types";
 
 export async function fetchTables(): Promise<Table[]> {
   const { data } = await client.get<Table[]>("/tables");
@@ -90,4 +90,9 @@ export async function updateOrderStatus(
   status: "preparing" | "ready" | "served"
 ): Promise<void> {
   await client.patch(`/kitchen/orders/${orderId}/status`, { status });
+}
+
+export async function getOrderEvents(orderId: string): Promise<OrderEvent[]> {
+  const { data } = await client.get<OrderEvent[]>(`/orders/${orderId}/events`);
+  return data;
 }

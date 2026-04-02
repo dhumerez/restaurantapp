@@ -1,6 +1,6 @@
-import { eq, and, inArray, sql } from "drizzle-orm";
+import { eq, and, inArray, sql, desc } from "drizzle-orm";
 import { db } from "../../config/db.js";
-import { orders, orderItems, menuItems, tables, restaurants } from "../../db/schema.js";
+import { orders, orderItems, menuItems, tables, restaurants, orderEvents, users } from "../../db/schema.js";
 import { NotFoundError, AppError } from "../../utils/errors.js";
 import type { CreateOrderInput, UpdateOrderInput, ApplyDiscountInput, TransferOrderInput } from "./orders.schema.js";
 
@@ -431,6 +431,58 @@ export async function mergeOrders(restaurantId: string, sourceId: string, target
   });
 
   return getOrder(restaurantId, targetId);
+}
+
+// ─── Audit Trail ─────────────────────────────────────────────
+type OrderAction =
+  | "created"
+  | "items_updated"
+  | "placed"
+  | "status_changed"
+  | "item_status_changed"
+  | "transferred"
+  | "merged"
+  | "discount_applied"
+  | "served"
+  | "cancelled";
+
+export async function logEvent(
+  orderId: string,
+  userId: string,
+  action: OrderAction,
+  details?: Record<string, unknown>
+) {
+  await db.insert(orderEvents).values({
+    orderId,
+    userId,
+    action,
+    details: details ?? null,
+  });
+}
+
+export async function getOrderEvents(restaurantId: string, orderId: string) {
+  // Verify order exists and belongs to restaurant
+  const order = await db.query.orders.findFirst({
+    where: and(eq(orders.id, orderId), eq(orders.restaurantId, restaurantId)),
+    columns: { id: true },
+  });
+  if (!order) throw new NotFoundError("Order not found");
+
+  return db
+    .select({
+      id: orderEvents.id,
+      orderId: orderEvents.orderId,
+      userId: orderEvents.userId,
+      action: orderEvents.action,
+      details: orderEvents.details,
+      createdAt: orderEvents.createdAt,
+      userName: users.name,
+      userRole: users.role,
+    })
+    .from(orderEvents)
+    .innerJoin(users, eq(orderEvents.userId, users.id))
+    .where(eq(orderEvents.orderId, orderId))
+    .orderBy(desc(orderEvents.createdAt));
 }
 
 export async function cancelOrder(restaurantId: string, orderId: string) {
