@@ -3,7 +3,6 @@ import { useAuth } from "../../context/AuthContext";
 import {
   HiOutlineViewGrid,
   HiOutlineBookOpen,
-  HiOutlineUsers,
   HiOutlineTable,
   HiOutlineClipboardList,
   HiOutlineLogout,
@@ -26,8 +25,6 @@ const navItems: NavItem[] = [
   // Restaurant admin
   { label: "Panel",          path: "/admin",        icon: HiOutlineViewGrid,     roles: ["admin"] },
   { label: "Menú",           path: "/admin/menu",   icon: HiOutlineBookOpen,     roles: ["admin"] },
-  { label: "Personal",       path: "/admin/staff",  icon: HiOutlineUsers,        roles: ["admin"] },
-  { label: "Mesas",          path: "/admin/tables", icon: HiOutlineTable,        roles: ["admin"] },
   { label: "Reportes",       path: "/admin/reports",icon: HiOutlineChartBar,     roles: ["admin"] },
   { label: "Mesas",          path: "/tables",       icon: HiOutlineTable,        roles: ["waiter", "admin", "cashier"] },
   { label: "Pedidos",        path: "/orders",       icon: HiOutlineClipboardList,roles: ["waiter", "admin", "cashier"] },
