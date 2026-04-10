@@ -1,5 +1,5 @@
 import "dotenv/config";
-import bcrypt from "bcrypt";
+import { hashPassword } from "../shared/auth-utils.js";
 import pg from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
 import * as schema from "./schema.js";
@@ -13,7 +13,7 @@ async function seed() {
   console.log("Seeding database...");
 
   // Create superadmin
-  const superadminHash = await bcrypt.hash("superadmin123", 12);
+  const superadminHash = await hashPassword("superadmin123");
   await db.insert(schema.superadmins).values({
     name: "Platform Admin",
     email: "super@platform.com",
@@ -36,7 +36,7 @@ async function seed() {
   console.log("Created restaurant:", restaurant.name);
 
   // Create users
-  const passwordHash = await bcrypt.hash("password123", 12);
+  const passwordHash = await hashPassword("password123");
 
   const usersData = [
     { name: "Admin", email: "admin@demo.com", role: "admin" as const },

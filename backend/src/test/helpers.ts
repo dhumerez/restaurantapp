@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import bcrypt from "bcrypt";
+import { hashPassword } from "../shared/auth-utils.js";
 import { eq } from "drizzle-orm";
 import { env } from "../config/env.js";
 import { db } from "../config/db.js";
@@ -38,7 +38,7 @@ export async function seedTestData(): Promise<TestData> {
     })
     .returning();
 
-  const passwordHash = await bcrypt.hash("password123", 4); // low rounds for speed
+  const passwordHash = await hashPassword("password123");
 
   // Create users
   const [admin] = await db

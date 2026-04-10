@@ -1,6 +1,6 @@
 import { Router, Request, Response } from "express";
 import { eq, and } from "drizzle-orm";
-import bcrypt from "bcrypt";
+import { hashPassword } from "../../shared/auth-utils.js";
 import { db } from "../../config/db.js";
 import { users } from "../../db/schema.js";
 import { authenticate, authorize } from "../../middleware/auth.js";
@@ -36,7 +36,7 @@ router.get("/staff", asyncHandler(async (req: Request, res: Response) => {
 // Create staff
 router.post("/staff", validate(createStaffSchema), asyncHandler(async (req: Request, res: Response) => {
   const { name, email, password, role } = req.body;
-  const passwordHash = await bcrypt.hash(password, 12);
+  const passwordHash = await hashPassword(password);
 
   const [user] = await db
     .insert(users)
@@ -69,7 +69,7 @@ router.put("/staff/:id", validate(updateStaffSchema), asyncHandler(async (req: R
   if (isActive !== undefined) updates.isActive = isActive;
 
   if (req.body.password) {
-    updates.passwordHash = await bcrypt.hash(req.body.password, 12);
+    updates.passwordHash = await hashPassword(req.body.password);
   }
 
   const [user] = await db
