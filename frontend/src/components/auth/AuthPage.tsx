@@ -53,9 +53,11 @@ export function AuthPage({
 
         {/* Tabs */}
         {showRegister && (
-          <div className={`flex gap-6 mb-5 border-b ${isDark ? 'border-surface-border' : 'border-gray-200'}`}>
+          <div className={`flex gap-6 mb-5 border-b ${isDark ? 'border-surface-border' : 'border-gray-200'}`} role="tablist">
             <button
               type="button"
+              role="tab"
+              aria-selected={tab === 'login'}
               onClick={() => setTab('login')}
               className={tab === 'login' ? tabActiveClass : tabInactiveClass}
             >
@@ -63,6 +65,8 @@ export function AuthPage({
             </button>
             <button
               type="button"
+              role="tab"
+              aria-selected={tab === 'register'}
               onClick={() => setTab('register')}
               className={tab === 'register' ? tabActiveClass : tabInactiveClass}
             >
