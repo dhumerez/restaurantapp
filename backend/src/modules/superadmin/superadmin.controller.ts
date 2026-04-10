@@ -30,3 +30,13 @@ export async function listRestaurantUsers(req: Request, res: Response) {
   const users = await superadminService.listRestaurantUsers(req.params.id as string);
   res.json(users);
 }
+
+export async function listPendingUsers(_req: Request, res: Response) {
+  const users = await superadminService.listPendingUsers();
+  res.json(users);
+}
+
+export async function assignRole(req: Request, res: Response) {
+  const user = await superadminService.assignRole(req.params.id as string, req.body);
+  res.json(user);
+}

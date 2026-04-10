@@ -77,3 +77,21 @@ export async function getRestaurantUsers(id: string): Promise<RestaurantUser[]> 
   const { data } = await client.get<RestaurantUser[]>(`/superadmin/restaurants/${id}/users`);
   return data;
 }
+
+export interface PendingUser {
+  id: string;
+  name: string;
+  email: string;
+  isEmailVerified: boolean;
+  createdAt: string;
+}
+
+export async function getPendingUsers(): Promise<PendingUser[]> {
+  const { data } = await client.get<PendingUser[]>("/superadmin/pending-users");
+  return data;
+}
+
+export async function assignRole(userId: string, restaurantId: string, role: string): Promise<RestaurantUser> {
+  const { data } = await client.post<RestaurantUser>(`/superadmin/pending-users/${userId}/assign-role`, { restaurantId, role });
+  return data;
+}

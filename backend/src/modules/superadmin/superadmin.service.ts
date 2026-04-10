@@ -1,5 +1,5 @@
-import bcrypt from "bcrypt";
-import { eq, sql, count } from "drizzle-orm";
+import { hashPassword } from "@shared/auth-utils";
+import { eq, sql, count, isNull, and } from "drizzle-orm";
 import { db } from "../../config/db.js";
 import { restaurants, users, orders } from "../../db/schema.js";
 import { AppError, NotFoundError } from "../../utils/errors.js";
@@ -98,7 +98,7 @@ export async function createRestaurant(input: z.infer<typeof createRestaurantSch
     throw new AppError(409, "A restaurant with this slug already exists");
   }
 
-  const passwordHash = await bcrypt.hash(input.adminPassword, 12);
+  const passwordHash = await hashPassword(input.adminPassword);
 
   // Transactional: create restaurant + admin user
   const result = await db.transaction(async (tx) => {
@@ -121,6 +121,7 @@ export async function createRestaurant(input: z.infer<typeof createRestaurantSch
         email: input.adminEmail,
         passwordHash,
         role: "admin",
+        isEmailVerified: true,
       })
       .returning({
         id: users.id,
@@ -144,6 +145,48 @@ export async function updateRestaurant(id: string, input: z.infer<typeof updateR
 
   if (!updated) {
     throw new NotFoundError("Restaurant not found");
+  }
+
+  return updated;
+}
+
+export async function listPendingUsers() {
+  // Users who verified their email but have no role/restaurant assigned yet
+  return db
+    .select({
+      id: users.id,
+      name: users.name,
+      email: users.email,
+      isEmailVerified: users.isEmailVerified,
+      createdAt: users.createdAt,
+    })
+    .from(users)
+    .where(and(isNull(users.role), eq(users.isEmailVerified, true)))
+    .orderBy(users.createdAt);
+}
+
+export async function assignRole(
+  userId: string,
+  input: { restaurantId: string; role: "admin" | "waiter" | "kitchen" | "cashier" },
+) {
+  // Verify restaurant exists
+  const [restaurant] = await db
+    .select({ id: restaurants.id })
+    .from(restaurants)
+    .where(eq(restaurants.id, input.restaurantId));
+
+  if (!restaurant) {
+    throw new NotFoundError("Restaurant not found");
+  }
+
+  const [updated] = await db
+    .update(users)
+    .set({ restaurantId: input.restaurantId, role: input.role })
+    .where(and(eq(users.id, userId), isNull(users.role)))
+    .returning({ id: users.id, name: users.name, email: users.email, role: users.role, restaurantId: users.restaurantId });
+
+  if (!updated) {
+    throw new NotFoundError("Pending user not found (may already have a role)");
   }
 
   return updated;

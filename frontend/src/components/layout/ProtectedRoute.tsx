@@ -29,6 +29,11 @@ export function ProtectedRoute({ children, roles }: ProtectedRouteProps) {
     return <Navigate to="/login" replace />;
   }
 
+  // Redirect pending users (unverified email or no role assigned yet)
+  if (!user.role || user.status === "pending_verification" || user.status === "pending_approval") {
+    return <Navigate to="/pending-approval" replace />;
+  }
+
   if (roles && !roles.includes(user.role)) {
     return <Navigate to={defaultRoutes[user.role] || "/login"} replace />;
   }
