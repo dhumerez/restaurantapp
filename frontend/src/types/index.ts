@@ -2,9 +2,12 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: "admin" | "waiter" | "kitchen" | "cashier" | "superadmin";
-  restaurantId?: string;
+  /** null for self-registered users awaiting role assignment */
+  role: "admin" | "waiter" | "kitchen" | "cashier" | "superadmin" | null;
+  restaurantId?: string | null;
   scope: "restaurant" | "platform";
+  /** Set for pending users */
+  status?: "pending_verification" | "pending_approval" | "active";
 }
 
 export interface Category {

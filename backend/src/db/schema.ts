@@ -51,20 +51,32 @@ export const users = pgTable(
   "users",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    restaurantId: uuid("restaurant_id")
-      .notNull()
-      .references(() => restaurants.id),
+    // Nullable: self-registered users have no restaurant until a superadmin assigns one
+    restaurantId: uuid("restaurant_id").references(() => restaurants.id),
     name: varchar("name", { length: 255 }).notNull(),
     email: varchar("email", { length: 255 }).notNull(),
     passwordHash: varchar("password_hash", { length: 255 }).notNull(),
-    role: varchar("role", { length: 20 })
-      .notNull()
-      .$type<"admin" | "waiter" | "kitchen" | "cashier">(),
+    // Nullable: self-registered users have no role until a superadmin assigns one
+    role: varchar("role", { length: 20 }).$type<"admin" | "waiter" | "kitchen" | "cashier">(),
     isActive: boolean("is_active").default(true).notNull(),
+    // false until user clicks verification email; true for pre-created admin users
+    isEmailVerified: boolean("is_email_verified").default(false).notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [unique("users_restaurant_email").on(table.restaurantId, table.email)]
 );
+
+// ─── Verification Tokens ─────────────────────────────────────
+export const verificationTokens = pgTable("verification_tokens", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  tokenHash: varchar("token_hash", { length: 255 }).notNull().unique(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  usedAt: timestamp("used_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
 
 export const usersRelations = relations(users, ({ one }) => ({
   restaurant: one(restaurants, {

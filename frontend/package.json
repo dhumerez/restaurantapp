@@ -11,6 +11,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@shared/ui-auth": "file:../../../../shared-ui-auth",
     "@tanstack/react-query": "^5.66.0",
     "axios": "^1.7.9",
     "react": "^19.0.0",

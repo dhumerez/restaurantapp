@@ -20,8 +20,9 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   // Superadmin
-  { label: "Plataforma",     path: "/platform",              icon: HiOutlineViewGrid,          roles: ["superadmin"] },
-  { label: "Restaurantes",   path: "/platform/restaurants",  icon: HiOutlineBuildingStorefront, roles: ["superadmin"] },
+  { label: "Plataforma",     path: "/platform",                    icon: HiOutlineViewGrid,          roles: ["superadmin"] },
+  { label: "Restaurantes",   path: "/platform/restaurants",        icon: HiOutlineBuildingStorefront, roles: ["superadmin"] },
+  { label: "Pendientes",     path: "/platform/pending-users",      icon: HiOutlineClipboardList,      roles: ["superadmin"] },
   // Restaurant admin
   { label: "Panel",          path: "/admin",        icon: HiOutlineViewGrid,     roles: ["admin"] },
   { label: "Menú",           path: "/admin/menu",   icon: HiOutlineBookOpen,     roles: ["admin"] },
@@ -51,9 +52,9 @@ export function Sidebar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  if (!user) return null;
+  if (!user || !user.role) return null;
 
-  const visibleItems = navItems.filter((item) => item.roles.includes(user.role));
+  const visibleItems = navItems.filter((item) => item.roles.includes(user.role!));
 
   const handleLogout = async () => {
     await logout();
@@ -83,8 +84,8 @@ export function Sidebar() {
             <div className="min-w-0">
               <p className="text-xs font-medium text-ink-primary truncate">{user.name}</p>
             </div>
-            <span className={`ml-auto text-[10px] font-medium px-1.5 py-0.5 rounded border capitalize shrink-0 ${roleColors[user.role] ?? roleColors.admin}`}>
-              {roleLabel[user.role] ?? user.role}
+            <span className={`ml-auto text-[10px] font-medium px-1.5 py-0.5 rounded border capitalize shrink-0 ${roleColors[user.role!] ?? roleColors.admin}`}>
+              {roleLabel[user.role!] ?? user.role}
             </span>
           </div>
         </div>

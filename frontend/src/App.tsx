@@ -9,6 +9,8 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 
 // Pages
 import { LoginPage } from "./pages/LoginPage";
+import { VerifyEmailPage } from "./pages/VerifyEmailPage";
+import { PendingApprovalPage } from "./pages/PendingApprovalPage";
 import { DashboardPage } from "./pages/admin/DashboardPage";
 import { MenuManagementPage } from "./pages/admin/MenuManagementPage";
 import { StaffManagementPage } from "./pages/admin/StaffManagementPage";
@@ -24,6 +26,7 @@ import { PlatformDashboard } from "./pages/platform/PlatformDashboard";
 import { RestaurantsListPage } from "./pages/platform/RestaurantsListPage";
 import { CreateRestaurantPage } from "./pages/platform/CreateRestaurantPage";
 import { RestaurantDetailPage } from "./pages/platform/RestaurantDetailPage";
+import { PendingUsersPage } from "./pages/platform/PendingUsersPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -76,6 +79,14 @@ function AppLayout() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/platform/pending-users"
+              element={
+                <ProtectedRoute roles={["superadmin"]}>
+                  <PendingUsersPage />
+                </ProtectedRoute>
+              }
+            />
             <Route path="*" element={<Navigate to="/platform" replace />} />
           </Routes>
         </div>
@@ -106,6 +117,8 @@ function AppLayout() {
       <div className="flex-1 flex flex-col min-w-0 pb-16 md:pb-0">
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/verify-email" element={<VerifyEmailPage />} />
+        <Route path="/pending-approval" element={<PendingApprovalPage />} />
 
         {/* Admin routes */}
         <Route
@@ -212,6 +225,10 @@ function RoleRedirect() {
 
   if (loading) return null;
   if (!user) return <Navigate to="/login" replace />;
+
+  if (!user.role || user.status === "pending_verification" || user.status === "pending_approval") {
+    return <Navigate to="/pending-approval" replace />;
+  }
 
   const routes: Record<string, string> = {
     superadmin: "/platform",
