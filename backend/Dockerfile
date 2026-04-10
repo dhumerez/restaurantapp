@@ -3,11 +3,11 @@ FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-COPY package.json package-lock.json* ./
+COPY backend/package.json backend/package-lock.json* ./
 RUN npm install --ignore-scripts
 
-COPY tsconfig.json ./
-COPY src ./src
+COPY backend/tsconfig.json ./
+COPY backend/src ./src
 
 RUN npm run build
 
@@ -18,9 +18,8 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
-# Only production dependencies (bcrypt needs native build tools)
 RUN apk add --no-cache python3 make g++
-COPY package.json package-lock.json* ./
+COPY backend/package.json backend/package-lock.json* ./
 RUN npm install --omit=dev && npm cache clean --force
 RUN apk del python3 make g++
 

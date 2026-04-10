@@ -1,4 +1,4 @@
-import { hashPassword } from "@shared/auth-utils";
+import { hashPassword } from "../../shared/auth-utils.js";
 import { eq, sql, count, isNull, and } from "drizzle-orm";
 import { db } from "../../config/db.js";
 import { restaurants, users, orders } from "../../db/schema.js";

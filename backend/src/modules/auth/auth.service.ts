@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import { eq, and, isNull } from "drizzle-orm";
-import { hashPassword, verifyPassword, DUMMY_HASH, generateRawToken, hashToken } from "@shared/auth-utils";
+import { hashPassword, verifyPassword, DUMMY_HASH, generateRawToken, hashToken } from "../../shared/auth-utils.js";
 import { db } from "../../config/db.js";
 import { users, superadmins, restaurants, verificationTokens } from "../../db/schema.js";
 import { env } from "../../config/env.js";

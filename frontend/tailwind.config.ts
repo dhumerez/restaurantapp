@@ -4,7 +4,7 @@ export default {
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
-    "../../../../shared-ui-auth/src/**/*.{ts,tsx}",
+    "./src/components/auth/**/*.{ts,tsx}",
   ],
   theme: {
     extend: {
