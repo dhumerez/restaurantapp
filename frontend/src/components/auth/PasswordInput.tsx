@@ -54,7 +54,7 @@ export function PasswordInput({
           onClick={() => setShow((s) => !s)}
           className={btnClass}
           tabIndex={-1}
-          aria-label={show ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+          aria-label={show ? 'Ocultar' : 'Mostrar'}
         >
           {show ? <HiEyeOff className="w-4 h-4" /> : <HiEye className="w-4 h-4" />}
         </button>
