@@ -30,3 +30,6 @@ e2e/playwright-report/
 
 # Claude internal
 .claude/
+
+# Git worktrees
+.worktrees/
