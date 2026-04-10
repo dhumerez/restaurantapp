@@ -1,3 +1,4 @@
+import axios from "axios";
 import client from "./client";
 import type { User } from "../types";
 
@@ -7,8 +8,15 @@ interface LoginResponse {
 }
 
 export async function login(email: string, password: string): Promise<LoginResponse> {
-  const { data } = await client.post<LoginResponse>("/auth/login", { email, password });
-  return data;
+  try {
+    const { data } = await client.post<LoginResponse>("/auth/login", { email, password });
+    return data;
+  } catch (err) {
+    if (axios.isAxiosError(err) && err.response?.status === 401) {
+      throw new Error("Correo o contraseña incorrectos");
+    }
+    throw err;
+  }
 }
 
 export async function register(name: string, email: string, password: string): Promise<{ message: string }> {
