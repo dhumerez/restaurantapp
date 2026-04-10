@@ -1,0 +1,68 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}_qa
+    volumes:
+      - pgdata_qa:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - internal_qa
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    restart: always
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}_qa
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      PORT: 3000
+      NODE_ENV: production
+      CORS_ORIGIN: ${CORS_ORIGIN:-https://humerez.dev}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - internal_qa
+      - web
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        VITE_API_URL: ""
+        VITE_BASE_PATH: /restaurant-qa/
+    restart: always
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.restaurant-qa.rule=Host(`humerez.dev`) && PathPrefix(`/restaurant-qa`)"
+      - "traefik.http.routers.restaurant-qa.entrypoints=websecure"
+      - "traefik.http.routers.restaurant-qa.tls=true"
+      - "traefik.http.routers.restaurant-qa.tls.certresolver=letsencrypt"
+      - "traefik.http.middlewares.restaurant-qa-strip.stripprefix.prefixes=/restaurant-qa"
+      - "traefik.http.routers.restaurant-qa.middlewares=restaurant-qa-strip"
+      - "traefik.http.services.restaurant-qa.loadbalancer.server.port=80"
+    depends_on:
+      - backend
+    networks:
+      - internal_qa
+      - web
+
+volumes:
+  pgdata_qa:
+
+networks:
+  internal_qa:
+    driver: bridge
+  web:
+    external: true
