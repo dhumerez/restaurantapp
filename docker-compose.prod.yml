@@ -27,7 +27,7 @@ services:
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
       PORT: 3000
       NODE_ENV: production
-      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost}
+      CORS_ORIGIN: ${CORS_ORIGIN:-https://humerez.dev}
     depends_on:
       postgres:
         condition: service_healthy
@@ -41,15 +41,17 @@ services:
       dockerfile: frontend/Dockerfile
       args:
         VITE_API_URL: ""
-        VITE_BASE_PATH: ${VITE_BASE_PATH:-/restaurant-app/}
+        VITE_BASE_PATH: ${VITE_BASE_PATH:-/restaurant/}
     restart: always
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.restaurant.rule=PathPrefix(`/restaurant-app`)"
-      - "traefik.http.routers.restaurant.entrypoints=web"
-      - "traefik.http.middlewares.restaurant-strip.stripprefix.prefixes=/restaurant-app"
+      - "traefik.http.routers.restaurant.rule=Host(`humerez.dev`) && PathPrefix(`/restaurant`)"
+      - "traefik.http.routers.restaurant.entrypoints=websecure"
+      - "traefik.http.routers.restaurant.tls=true"
+      - "traefik.http.routers.restaurant.tls.certresolver=letsencrypt"
+      - "traefik.http.middlewares.restaurant-strip.stripprefix.prefixes=/restaurant"
       - "traefik.http.routers.restaurant.middlewares=restaurant-strip"
-      - "traefik.http.services.restaurant.loadbalancer.server.port=5173"
+      - "traefik.http.services.restaurant.loadbalancer.server.port=80"
     depends_on:
       - backend
     networks:
