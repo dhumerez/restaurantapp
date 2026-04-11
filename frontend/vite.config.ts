@@ -11,9 +11,52 @@ export default defineConfig({
       strategies: "injectManifest",
       srcDir: "src",
       filename: "sw.ts",
-      manifest: false,
       injectManifest: {
         injectionPoint: undefined,
+      },
+      manifest: {
+        name: "Tu Restaurante",
+        short_name: "Restaurante",
+        description: "Sistema POS para tu restaurante",
+        start_url: process.env.VITE_BASE_PATH || "/",
+        scope: process.env.VITE_BASE_PATH || "/",
+        display: "standalone",
+        background_color: "#08090e",
+        theme_color: "#08090e",
+        orientation: "portrait-primary",
+        lang: "es",
+        icons: [
+          {
+            src: "icons/icon-192x192.png",
+            sizes: "192x192",
+            type: "image/png",
+            purpose: "any",
+          },
+          {
+            src: "icons/icon-512x512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "any",
+          },
+          {
+            src: "icons/icon-192x192.png",
+            sizes: "192x192",
+            type: "image/png",
+            purpose: "maskable",
+          },
+          {
+            src: "icons/icon-512x512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "maskable",
+          },
+          {
+            src: "icons/icon.svg",
+            sizes: "any",
+            type: "image/svg+xml",
+            purpose: "any",
+          },
+        ],
       },
       devOptions: {
         enabled: false,
