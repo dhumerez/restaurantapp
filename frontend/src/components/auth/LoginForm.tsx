@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { PasswordInput } from './PasswordInput';
 import type { AuthVariant, DemoCredential } from './types';
 
@@ -22,14 +22,29 @@ export function LoginForm({
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Refs hold the latest values synchronously so handleSubmit never reads
+  // stale state if submitted immediately after a demo-button click.
+  const emailRef = useRef('');
+  const passwordRef = useRef('');
+
   const isDark = variant === 'dark';
+
+  const handleEmailChange = (value: string) => {
+    emailRef.current = value;
+    setEmail(value);
+  };
+
+  const handlePasswordChange = (value: string) => {
+    passwordRef.current = value;
+    setPassword(value);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
     try {
-      await onLogin(email, password);
+      await onLogin(emailRef.current, passwordRef.current);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Correo o contraseña incorrectos');
     } finally {
@@ -61,7 +76,7 @@ export function LoginForm({
           id="login-email"
           type="email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => handleEmailChange(e.target.value)}
           required
           autoComplete="email"
           className={inputClass}
@@ -73,7 +88,7 @@ export function LoginForm({
         id="login-password"
         label="Contraseña"
         value={password}
-        onChange={setPassword}
+        onChange={handlePasswordChange}
         autoComplete="current-password"
         variant={variant}
       />
@@ -124,7 +139,12 @@ export function LoginForm({
               <button
                 key={cred.email}
                 type="button"
-                onClick={() => onLogin(cred.email, cred.password).catch((err) => setError(err instanceof Error ? err.message : 'Correo o contraseña incorrectos'))}
+                onClick={() => {
+                  emailRef.current = cred.email;
+                  passwordRef.current = cred.password;
+                  setEmail(cred.email);
+                  setPassword(cred.password);
+                }}
                 className={`flex-1 py-1.5 px-3 text-xs rounded border transition-colors ${
                   isDark
                     ? 'border-surface-border text-ink-muted hover:bg-surface-2 hover:text-ink-secondary'
