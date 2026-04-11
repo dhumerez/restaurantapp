@@ -57,5 +57,10 @@ export default defineConfig({
         storageState: path.join(STORAGE_DIR, "kitchen.json"),
       },
     },
+    {
+      name: "pwa",
+      testMatch: /pwa\.spec\.ts/,
+      use: { ...devices["Desktop Chrome"] },
+    },
   ],
 });

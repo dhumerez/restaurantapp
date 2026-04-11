@@ -87,17 +87,16 @@ test.describe("PWA – HTML meta tags", () => {
   });
 });
 
-// ─── Mobile viewport (iPhone 14) ─────────────────────────────────────────────
+// ─── Mobile viewport (iPhone 14 dimensions, Chrome) ──────────────────────────
 
-test.describe("PWA – mobile layout (iPhone 14)", () => {
-  test.use({ ...devices["iPhone 14"] });
+test.describe("PWA – mobile layout (iPhone 14 viewport)", () => {
+  // Use viewport only — avoids defaultBrowserType restriction in describe blocks
+  test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
 
   test("app loads on mobile viewport", async ({ page }) => {
     await page.goto(BASE);
-    // Should land on login page (not crash)
     await expect(page).toHaveURL(/.*/, { timeout: 10000 });
-    const body = page.locator("body");
-    await expect(body).toBeVisible();
+    await expect(page.locator("body")).toBeVisible();
   });
 
   test("no horizontal scroll on mobile", async ({ page }) => {
@@ -108,7 +107,7 @@ test.describe("PWA – mobile layout (iPhone 14)", () => {
     const clientWidth = await page.evaluate(
       () => document.documentElement.clientWidth
     );
-    expect(scrollWidth).toBeLessThanOrEqual(clientWidth + 2); // 2px tolerance
+    expect(scrollWidth).toBeLessThanOrEqual(clientWidth + 2);
   });
 
   test("viewport meta is set correctly", async ({ page }) => {
@@ -120,27 +119,23 @@ test.describe("PWA – mobile layout (iPhone 14)", () => {
   });
 });
 
-// ─── Mobile viewport (Pixel 7 / Android) ─────────────────────────────────────
+// ─── Mobile viewport (Pixel 7 dimensions, Chrome) ────────────────────────────
 
-test.describe("PWA – mobile layout (Pixel 7)", () => {
-  test.use({ ...devices["Pixel 7"] });
+test.describe("PWA – mobile layout (Pixel 7 viewport)", () => {
+  test.use({ viewport: { width: 412, height: 915 }, isMobile: true, hasTouch: true });
 
   test("app loads on Android mobile viewport", async ({ page }) => {
     await page.goto(BASE);
     await expect(page.locator("body")).toBeVisible();
   });
 
-  test("service worker registration attempt logged", async ({ page }) => {
-    const swMessages: string[] = [];
-    page.on("console", (msg) => {
-      if (msg.text().toLowerCase().includes("service worker")) {
-        swMessages.push(msg.text());
-      }
-    });
+  test("service worker registers without errors", async ({ page }) => {
+    const errors: string[] = [];
+    page.on("pageerror", (err) => errors.push(err.message));
     await page.goto(BASE);
-    // Give SW registration time to fire
     await page.waitForTimeout(2000);
-    // SW registration is async — we just verify no navigation errors
+    const swErrors = errors.filter((e) => e.toLowerCase().includes("service worker"));
+    expect(swErrors).toHaveLength(0);
     expect(await page.title()).toBeTruthy();
   });
 
