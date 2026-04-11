@@ -124,7 +124,7 @@ export function LoginForm({
               <button
                 key={cred.email}
                 type="button"
-                onClick={() => { setEmail(cred.email); setPassword(cred.password); }}
+                onClick={() => onLogin(cred.email, cred.password).catch((err) => setError(err instanceof Error ? err.message : 'Correo o contraseña incorrectos'))}
                 className={`flex-1 py-1.5 px-3 text-xs rounded border transition-colors ${
                   isDark
                     ? 'border-surface-border text-ink-muted hover:bg-surface-2 hover:text-ink-secondary'
