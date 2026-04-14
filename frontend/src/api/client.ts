@@ -72,7 +72,13 @@ client.interceptors.response.use(
       } catch (refreshError) {
         processQueue(refreshError, null);
         localStorage.removeItem("accessToken");
-        window.location.href = import.meta.env.BASE_URL + "login";
+        // Only hard-redirect when the user is NOT already on the login page.
+        // If they ARE on /login with an expired token and simultaneously
+        // submit the login form, a full page reload would race with the
+        // in-flight login request and wipe out the successful response.
+        if (!window.location.pathname.includes("/login")) {
+          window.location.href = import.meta.env.BASE_URL + "login";
+        }
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
