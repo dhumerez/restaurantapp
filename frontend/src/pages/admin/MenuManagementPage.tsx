@@ -20,11 +20,13 @@ export function MenuManagementPage() {
   const { data: categories = [] } = useQuery({
     queryKey: ["categories"],
     queryFn: menuApi.getCategories,
+    staleTime: 5 * 60 * 1000,
   });
 
-  const { data: menuItems = [], isPending: itemsPending } = useQuery({
+  const { data: menuItems = [], isPending: itemsPending, isError: itemsError, refetch: refetchItems } = useQuery({
     queryKey: ["menuItems", selectedCategoryId],
     queryFn: () => menuApi.getMenuItems(selectedCategoryId ?? undefined),
+    staleTime: 5 * 60 * 1000,
   });
 
   const createCategoryMut = useMutation({
@@ -212,6 +214,16 @@ export function MenuManagementPage() {
           {itemsPending ? (
             <div className="bg-surface-1 border border-surface-border rounded-2xl p-12 md:p-16 text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mx-auto" />
+            </div>
+          ) : itemsError ? (
+            <div className="bg-surface-1 border border-surface-border rounded-2xl p-12 md:p-16 text-center">
+              <p className="text-sm text-ink-muted mb-3">Error al cargar el menú</p>
+              <button
+                onClick={() => refetchItems()}
+                className="text-xs text-primary-400 hover:text-primary-300 underline"
+              >
+                Reintentar
+              </button>
             </div>
           ) : menuItems.length === 0 ? (
             <div className="bg-surface-1 border border-surface-border rounded-2xl p-12 md:p-16 text-center">
