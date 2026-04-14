@@ -20,13 +20,19 @@ export function MenuManagementPage() {
   const { data: categories = [] } = useQuery({
     queryKey: ["categories"],
     queryFn: menuApi.getCategories,
-    staleTime: 5 * 60 * 1000,
+    staleTime: Infinity,
   });
 
-  const { data: menuItems = [], isPending: itemsPending, isError: itemsError, refetch: refetchItems } = useQuery({
+  const {
+    data: menuItems = [],
+    isPending: itemsPending,
+    isFetching: itemsFetching,
+    isError: itemsError,
+    refetch: refetchItems,
+  } = useQuery({
     queryKey: ["menuItems", selectedCategoryId],
     queryFn: () => menuApi.getMenuItems(selectedCategoryId ?? undefined),
-    staleTime: 5 * 60 * 1000,
+    staleTime: Infinity,
   });
 
   const createCategoryMut = useMutation({
@@ -211,7 +217,7 @@ export function MenuManagementPage() {
             </Button>
           </div>
 
-          {itemsPending ? (
+          {itemsPending || (itemsFetching && menuItems.length === 0) ? (
             <div className="bg-surface-1 border border-surface-border rounded-2xl p-12 md:p-16 text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mx-auto" />
             </div>
