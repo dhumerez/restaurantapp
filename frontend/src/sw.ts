@@ -11,7 +11,15 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(self.clients.claim());
 });
 
-// Pass all requests straight through — no caching (installable-only mode).
 self.addEventListener("fetch", (event) => {
+  // For HTML navigation requests, bypass the browser HTTP cache entirely.
+  // This ensures browsers always load the latest index.html after a deploy
+  // instead of serving a stale version that references old asset hashes.
+  if (event.request.mode === "navigate") {
+    event.respondWith(fetch(event.request, { cache: "no-store" }));
+    return;
+  }
+  // All other requests (JS, CSS, images) go through normally and respect
+  // their own Cache-Control headers (content-hashed assets are safe to cache).
   event.respondWith(fetch(event.request));
 });
