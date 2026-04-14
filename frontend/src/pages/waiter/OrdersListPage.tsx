@@ -32,9 +32,10 @@ export function OrdersListPage() {
   const isCashier = user?.role === "cashier";
   const [statusFilter, setStatusFilter] = useState<string>(STATUS_FILTERS[0].value);
 
-  const { data: orders = [], isLoading } = useQuery({
+  const { data: orders = [], isPending: ordersPending, isFetching: ordersFetching } = useQuery({
     queryKey: ["orders", "list", statusFilter],
     queryFn: () => getOrders(statusFilter || undefined),
+    staleTime: 30000,
   });
 
   useEffect(() => {
@@ -99,7 +100,7 @@ export function OrdersListPage() {
           ))}
         </div>
 
-        {isLoading ? (
+        {ordersPending || (ordersFetching && orders.length === 0) ? (
           <div className="flex justify-center py-16">
             <div className="w-6 h-6 border-2 border-primary-500/30 border-t-primary-500 rounded-full animate-spin" />
           </div>

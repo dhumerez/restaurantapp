@@ -27,11 +27,13 @@ export function TablesPage() {
   const { data: tables = [] } = useQuery({
     queryKey: ["tables"],
     queryFn: fetchTables,
+    staleTime: Infinity,
   });
 
   const { data: activeOrders = [] } = useQuery({
     queryKey: ["orders", "active"],
     queryFn: () => getOrders("draft,placed,preparing,ready"),
+    staleTime: 30000,
     refetchInterval: 30000,
   });
 

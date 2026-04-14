@@ -35,9 +35,10 @@ export function TableManagementPage() {
   const [editing, setEditing] = useState<Table | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Table | null>(null);
 
-  const { data: tables = [], isLoading } = useQuery({
+  const { data: tables = [], isPending: tablesPending, isFetching: tablesFetching } = useQuery({
     queryKey: ["admin-tables"],
     queryFn: getTables,
+    staleTime: Infinity,
   });
 
   const createMut = useMutation({
@@ -100,7 +101,7 @@ export function TableManagementPage() {
           </Button>
         </div>
 
-        {isLoading ? (
+        {tablesPending || (tablesFetching && tables.length === 0) ? (
           <div className="bg-surface-1 border border-surface-border rounded-2xl p-16 text-center">
             <div className="w-6 h-6 border-2 border-primary-500/30 border-t-primary-500 rounded-full animate-spin mx-auto" />
           </div>

@@ -16,9 +16,10 @@ export function StaffManagementPage() {
   const [editing, setEditing] = useState<StaffMember | null>(null);
   const [deactivateTarget, setDeactivateTarget] = useState<StaffMember | null>(null);
 
-  const { data: staff = [], isLoading } = useQuery({
+  const { data: staff = [], isPending: staffPending, isFetching: staffFetching } = useQuery({
     queryKey: ["staff"],
     queryFn: getStaff,
+    staleTime: Infinity,
   });
 
   const createMut = useMutation({
@@ -92,7 +93,7 @@ export function StaffManagementPage() {
           </Button>
         </div>
 
-        {isLoading ? (
+        {staffPending || (staffFetching && staff.length === 0) ? (
           <div className="bg-surface-1 border border-surface-border rounded-2xl p-16 text-center">
             <div className="w-6 h-6 border-2 border-primary-500/30 border-t-primary-500 rounded-full animate-spin mx-auto" />
           </div>
