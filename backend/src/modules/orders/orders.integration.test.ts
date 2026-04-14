@@ -14,7 +14,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await cleanupTestData(td.restaurantId);
+  if (td) await cleanupTestData(td.restaurantId);
 });
 
 describe("Orders API", () => {

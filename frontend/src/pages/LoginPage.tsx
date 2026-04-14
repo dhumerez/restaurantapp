@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthPage } from "../components/auth/AuthPage";
 import { useAuth } from "../context/AuthContext";
@@ -9,12 +10,19 @@ const DEMO_CREDENTIALS = [
 ];
 
 export function LoginPage() {
-  const { login, register } = useAuth();
+  const { login, register, user } = useAuth();
   const navigate = useNavigate();
+
+  // Navigate after user state is committed — avoids race condition where
+  // navigate("/") fires before setUser is committed, making RoleRedirect
+  // see user=null and send the user back to /login.
+  useEffect(() => {
+    if (user) navigate("/", { replace: true });
+  }, [user, navigate]);
 
   const handleLogin = async (email: string, password: string) => {
     await login(email, password);
-    navigate("/");
+    // Navigation is handled by the useEffect above
   };
 
   const handleRegister = async (name: string, email: string, password: string) => {

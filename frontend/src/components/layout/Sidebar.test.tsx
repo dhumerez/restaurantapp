@@ -31,14 +31,13 @@ describe("Sidebar", () => {
 
     renderSidebar();
 
-    // Spanish labels from updated Sidebar
-    expect(screen.getByText("Panel")).toBeInTheDocument();
-    expect(screen.getByText("Menú")).toBeInTheDocument();
-    expect(screen.getByText("Personal")).toBeInTheDocument();
-    expect(screen.getByText("Config. Mesas")).toBeInTheDocument();
-    expect(screen.getByText("Mesas")).toBeInTheDocument();
-    expect(screen.getByText("Pedidos")).toBeInTheDocument();
-    expect(screen.getByText("Cocina")).toBeInTheDocument();
+    // Each label appears twice (desktop sidebar + mobile bottom bar)
+    expect(screen.getAllByText("Panel").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Menú").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Reportes").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Mesas").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Pedidos").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Cocina").length).toBeGreaterThan(0);
     expect(screen.getByText("Admin User")).toBeInTheDocument();
   });
 
@@ -50,12 +49,12 @@ describe("Sidebar", () => {
 
     renderSidebar();
 
-    expect(screen.getByText("Mesas")).toBeInTheDocument();
-    expect(screen.getByText("Pedidos")).toBeInTheDocument();
+    expect(screen.getAllByText("Mesas").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Pedidos").length).toBeGreaterThan(0);
     // Should NOT show admin-only items
     expect(screen.queryByText("Panel")).not.toBeInTheDocument();
     expect(screen.queryByText("Menú")).not.toBeInTheDocument();
-    expect(screen.queryByText("Personal")).not.toBeInTheDocument();
+    expect(screen.queryByText("Reportes")).not.toBeInTheDocument();
   });
 
   it("shows kitchen navigation items for kitchen role", () => {
@@ -66,7 +65,7 @@ describe("Sidebar", () => {
 
     renderSidebar();
 
-    expect(screen.getByRole("link", { name: /cocina/i })).toBeInTheDocument();
+    expect(screen.getAllByRole("link", { name: /cocina/i }).length).toBeGreaterThan(0);
     expect(screen.queryByText("Mesas")).not.toBeInTheDocument();
     expect(screen.queryByText("Pedidos")).not.toBeInTheDocument();
     expect(screen.queryByText("Panel")).not.toBeInTheDocument();
