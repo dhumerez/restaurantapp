@@ -32,6 +32,13 @@ test.describe("Authentication", () => {
     await expect(page).toHaveURL(/\/admin/, { timeout: 10000 });
   });
 
+  test("demo waiter role lands on waiter tables, not login", async ({ page }) => {
+    await page.goto("demo");
+    await page.getByRole("button", { name: /mesero/i }).click();
+    await expect(page).toHaveURL(/\/waiter\/tables/, { timeout: 10000 });
+    await expect(page).not.toHaveURL(/\/login/);
+  });
+
   test("logout clears session and redirects to login", async ({ page }) => {
     await login(page, "admin@demo.com", "password123");
     await expect(page).toHaveURL(/\/admin/, { timeout: 10000 });

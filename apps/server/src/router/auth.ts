@@ -23,18 +23,20 @@ export const authRouter = router({
           throw new TRPCError({ code: "NOT_FOUND", message: "Demo not configured" });
         }
 
-        // Create anonymous session via Better Auth anonymous plugin.
-        // returnHeaders is required so we can forward Set-Cookie to the browser.
-        const { headers: authHeaders, response } = await auth.api.signInAnonymous({
-          headers: ctx.req.headers as any,
-          returnHeaders: true,
-        });
+        // 1. Create anonymous session. returnHeaders gives us the Set-Cookie
+        //    headers we'll need to (a) read the new session token ourselves and
+        //    (b) eventually forward to the browser.
+        const { headers: signInHeaders, response: signInResponse } =
+          await auth.api.signInAnonymous({
+            headers: ctx.req.headers as any,
+            returnHeaders: true,
+          });
 
-        if (!response?.user) {
+        if (!signInResponse?.user) {
           throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
         }
 
-        // Assign demo role + restaurant
+        // 2. Assign demo role + restaurant directly in the DB.
         await db
           .update(user)
           .set({
@@ -44,11 +46,37 @@ export const authRouter = router({
             emailVerified: true,
             name: `Demo ${input.role.charAt(0).toUpperCase() + input.role.slice(1)}`,
           })
-          .where(eq(user.id, response.user.id));
+          .where(eq(user.id, signInResponse.user.id));
 
-        // Forward Set-Cookie headers from Better Auth to the Fastify reply.
-        // getSetCookie() preserves multiple cookies instead of collapsing them.
-        const setCookies = authHeaders.getSetCookie();
+        // 3. Better Auth caches the user inside the `session_data` cookie at
+        //    sign-in time (cookieCache). That snapshot still has role=null,
+        //    so the next getSession() on the client would see a role-less
+        //    user and bounce to /pending. Re-run getSession with the new
+        //    session token and disableCookieCache so Better Auth re-reads
+        //    the user from the DB and emits a fresh session_data cookie.
+        const cookieHeader = signInHeaders
+          .getSetCookie()
+          .map((c) => c.split(";")[0])
+          .join("; ");
+
+        const { headers: refreshHeaders } = await auth.api.getSession({
+          headers: new Headers({ cookie: cookieHeader }),
+          query: { disableCookieCache: true },
+          returnHeaders: true,
+        });
+
+        // 4. Merge cookies from both calls. signInHeaders carries the
+        //    session_token (the source of truth); refreshHeaders carries the
+        //    fresh session_data cache (with the new role). For each cookie
+        //    name, the refreshed version wins.
+        const merged = new Map<string, string>();
+        for (const c of signInHeaders.getSetCookie()) {
+          merged.set(c.split("=")[0], c);
+        }
+        for (const c of refreshHeaders.getSetCookie()) {
+          merged.set(c.split("=")[0], c);
+        }
+        const setCookies = [...merged.values()];
         if (setCookies.length > 0) {
           ctx.res.header("set-cookie", setCookies);
         }
