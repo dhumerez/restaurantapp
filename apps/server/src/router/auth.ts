@@ -23,12 +23,14 @@ export const authRouter = router({
           throw new TRPCError({ code: "NOT_FOUND", message: "Demo not configured" });
         }
 
-        // Create anonymous session via Better Auth anonymous plugin
-        const response = await auth.api.signInAnonymous({
+        // Create anonymous session via Better Auth anonymous plugin.
+        // returnHeaders is required so we can forward Set-Cookie to the browser.
+        const { headers: authHeaders, response } = await auth.api.signInAnonymous({
           headers: ctx.req.headers as any,
+          returnHeaders: true,
         });
 
-        if (!response.user) {
+        if (!response?.user) {
           throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
         }
 
@@ -44,9 +46,11 @@ export const authRouter = router({
           })
           .where(eq(user.id, response.user.id));
 
-        // Set session cookie in response
-        for (const [key, value] of (response as any).headers?.entries?.() ?? []) {
-          ctx.res.header(key, value);
+        // Forward Set-Cookie headers from Better Auth to the Fastify reply.
+        // getSetCookie() preserves multiple cookies instead of collapsing them.
+        const setCookies = authHeaders.getSetCookie();
+        if (setCookies.length > 0) {
+          ctx.res.header("set-cookie", setCookies);
         }
 
         return {
