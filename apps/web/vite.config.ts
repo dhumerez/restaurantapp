@@ -29,12 +29,15 @@ export default defineConfig({
           { src: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png", purpose: "apple touch icon" },
         ],
       },
+      devOptions: {
+        enabled: false,
+      },
     }),
   ],
   server: {
     proxy: {
       "/api": {
-        target: process.env.VITE_API_URL ?? "http://localhost:3000",
+        target: process.env.API_PROXY_TARGET ?? "http://localhost:3000",
         ws: true,
       },
     },

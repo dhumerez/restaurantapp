@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { trpc } from "../../../trpc.js";
 import { ChevronRight, Plus } from "lucide-react";
 
-export const Route = createFileRoute("/_app/waiter/orders")({
+export const Route = createFileRoute("/_app/waiter/orders/")({
   component: WaiterOrdersIndex,
 });
 

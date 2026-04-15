@@ -23,12 +23,13 @@ export const authRouter = router({
           throw new TRPCError({ code: "NOT_FOUND", message: "Demo not configured" });
         }
 
-        // 1. Create anonymous session. returnHeaders gives us the Set-Cookie
-        //    headers we'll need to (a) read the new session token ourselves and
-        //    (b) eventually forward to the browser.
+        // 1. Create anonymous session. Pass empty headers so Better Auth's
+        //    anonymous plugin doesn't see an existing anonymous session and
+        //    throw ANONYMOUS_USERS_CANNOT_SIGN_IN_AGAIN_ANONYMOUSLY — this
+        //    lets a user switch demo roles repeatedly from /demo.
         const { headers: signInHeaders, response: signInResponse } =
           await auth.api.signInAnonymous({
-            headers: ctx.req.headers as any,
+            headers: new Headers(),
             returnHeaders: true,
           });
 

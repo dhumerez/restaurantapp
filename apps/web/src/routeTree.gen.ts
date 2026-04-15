@@ -17,7 +17,6 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppKitchenIndexRouteImport } from './routes/_app/kitchen/index'
 import { Route as AppAdminIndexRouteImport } from './routes/_app/admin/index'
 import { Route as AppWaiterTablesRouteImport } from './routes/_app/waiter/tables'
-import { Route as AppWaiterOrdersRouteImport } from './routes/_app/waiter/orders'
 import { Route as AppPlatformRestaurantsRouteImport } from './routes/_app/platform/restaurants'
 import { Route as AppPlatformPendingUsersRouteImport } from './routes/_app/platform/pending-users'
 import { Route as AppCashierTablesRouteImport } from './routes/_app/cashier/tables'
@@ -26,6 +25,7 @@ import { Route as AppAdminStaffRouteImport } from './routes/_app/admin/staff'
 import { Route as AppAdminReportsRouteImport } from './routes/_app/admin/reports'
 import { Route as AppAdminMenuRouteImport } from './routes/_app/admin/menu'
 import { Route as AppAdminInventoryRouteImport } from './routes/_app/admin/inventory'
+import { Route as AppWaiterOrdersIndexRouteImport } from './routes/_app/waiter/orders.index'
 import { Route as AppWaiterOrdersIdRouteImport } from './routes/_app/waiter/orders.$id'
 import { Route as AppCashierOrdersIdRouteImport } from './routes/_app/cashier/orders.$id'
 
@@ -68,11 +68,6 @@ const AppWaiterTablesRoute = AppWaiterTablesRouteImport.update({
   path: '/waiter/tables',
   getParentRoute: () => AppRoute,
 } as any)
-const AppWaiterOrdersRoute = AppWaiterOrdersRouteImport.update({
-  id: '/waiter/orders',
-  path: '/waiter/orders',
-  getParentRoute: () => AppRoute,
-} as any)
 const AppPlatformRestaurantsRoute = AppPlatformRestaurantsRouteImport.update({
   id: '/platform/restaurants',
   path: '/platform/restaurants',
@@ -113,10 +108,15 @@ const AppAdminInventoryRoute = AppAdminInventoryRouteImport.update({
   path: '/admin/inventory',
   getParentRoute: () => AppRoute,
 } as any)
+const AppWaiterOrdersIndexRoute = AppWaiterOrdersIndexRouteImport.update({
+  id: '/waiter/orders/',
+  path: '/waiter/orders/',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppWaiterOrdersIdRoute = AppWaiterOrdersIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => AppWaiterOrdersRoute,
+  id: '/waiter/orders/$id',
+  path: '/waiter/orders/$id',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppCashierOrdersIdRoute = AppCashierOrdersIdRouteImport.update({
   id: '/cashier/orders/$id',
@@ -137,12 +137,12 @@ export interface FileRoutesByFullPath {
   '/cashier/tables': typeof AppCashierTablesRoute
   '/platform/pending-users': typeof AppPlatformPendingUsersRoute
   '/platform/restaurants': typeof AppPlatformRestaurantsRoute
-  '/waiter/orders': typeof AppWaiterOrdersRouteWithChildren
   '/waiter/tables': typeof AppWaiterTablesRoute
   '/admin/': typeof AppAdminIndexRoute
   '/kitchen/': typeof AppKitchenIndexRoute
   '/cashier/orders/$id': typeof AppCashierOrdersIdRoute
   '/waiter/orders/$id': typeof AppWaiterOrdersIdRoute
+  '/waiter/orders/': typeof AppWaiterOrdersIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -157,12 +157,12 @@ export interface FileRoutesByTo {
   '/cashier/tables': typeof AppCashierTablesRoute
   '/platform/pending-users': typeof AppPlatformPendingUsersRoute
   '/platform/restaurants': typeof AppPlatformRestaurantsRoute
-  '/waiter/orders': typeof AppWaiterOrdersRouteWithChildren
   '/waiter/tables': typeof AppWaiterTablesRoute
   '/admin': typeof AppAdminIndexRoute
   '/kitchen': typeof AppKitchenIndexRoute
   '/cashier/orders/$id': typeof AppCashierOrdersIdRoute
   '/waiter/orders/$id': typeof AppWaiterOrdersIdRoute
+  '/waiter/orders': typeof AppWaiterOrdersIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -179,12 +179,12 @@ export interface FileRoutesById {
   '/_app/cashier/tables': typeof AppCashierTablesRoute
   '/_app/platform/pending-users': typeof AppPlatformPendingUsersRoute
   '/_app/platform/restaurants': typeof AppPlatformRestaurantsRoute
-  '/_app/waiter/orders': typeof AppWaiterOrdersRouteWithChildren
   '/_app/waiter/tables': typeof AppWaiterTablesRoute
   '/_app/admin/': typeof AppAdminIndexRoute
   '/_app/kitchen/': typeof AppKitchenIndexRoute
   '/_app/cashier/orders/$id': typeof AppCashierOrdersIdRoute
   '/_app/waiter/orders/$id': typeof AppWaiterOrdersIdRoute
+  '/_app/waiter/orders/': typeof AppWaiterOrdersIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -201,12 +201,12 @@ export interface FileRouteTypes {
     | '/cashier/tables'
     | '/platform/pending-users'
     | '/platform/restaurants'
-    | '/waiter/orders'
     | '/waiter/tables'
     | '/admin/'
     | '/kitchen/'
     | '/cashier/orders/$id'
     | '/waiter/orders/$id'
+    | '/waiter/orders/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -221,12 +221,12 @@ export interface FileRouteTypes {
     | '/cashier/tables'
     | '/platform/pending-users'
     | '/platform/restaurants'
-    | '/waiter/orders'
     | '/waiter/tables'
     | '/admin'
     | '/kitchen'
     | '/cashier/orders/$id'
     | '/waiter/orders/$id'
+    | '/waiter/orders'
   id:
     | '__root__'
     | '/'
@@ -242,12 +242,12 @@ export interface FileRouteTypes {
     | '/_app/cashier/tables'
     | '/_app/platform/pending-users'
     | '/_app/platform/restaurants'
-    | '/_app/waiter/orders'
     | '/_app/waiter/tables'
     | '/_app/admin/'
     | '/_app/kitchen/'
     | '/_app/cashier/orders/$id'
     | '/_app/waiter/orders/$id'
+    | '/_app/waiter/orders/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -316,13 +316,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppWaiterTablesRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/waiter/orders': {
-      id: '/_app/waiter/orders'
-      path: '/waiter/orders'
-      fullPath: '/waiter/orders'
-      preLoaderRoute: typeof AppWaiterOrdersRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/_app/platform/restaurants': {
       id: '/_app/platform/restaurants'
       path: '/platform/restaurants'
@@ -379,12 +372,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAdminInventoryRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/waiter/orders/': {
+      id: '/_app/waiter/orders/'
+      path: '/waiter/orders'
+      fullPath: '/waiter/orders/'
+      preLoaderRoute: typeof AppWaiterOrdersIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/waiter/orders/$id': {
       id: '/_app/waiter/orders/$id'
-      path: '/$id'
+      path: '/waiter/orders/$id'
       fullPath: '/waiter/orders/$id'
       preLoaderRoute: typeof AppWaiterOrdersIdRouteImport
-      parentRoute: typeof AppWaiterOrdersRoute
+      parentRoute: typeof AppRoute
     }
     '/_app/cashier/orders/$id': {
       id: '/_app/cashier/orders/$id'
@@ -396,18 +396,6 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface AppWaiterOrdersRouteChildren {
-  AppWaiterOrdersIdRoute: typeof AppWaiterOrdersIdRoute
-}
-
-const AppWaiterOrdersRouteChildren: AppWaiterOrdersRouteChildren = {
-  AppWaiterOrdersIdRoute: AppWaiterOrdersIdRoute,
-}
-
-const AppWaiterOrdersRouteWithChildren = AppWaiterOrdersRoute._addFileChildren(
-  AppWaiterOrdersRouteChildren,
-)
-
 interface AppRouteChildren {
   AppAdminInventoryRoute: typeof AppAdminInventoryRoute
   AppAdminMenuRoute: typeof AppAdminMenuRoute
@@ -417,11 +405,12 @@ interface AppRouteChildren {
   AppCashierTablesRoute: typeof AppCashierTablesRoute
   AppPlatformPendingUsersRoute: typeof AppPlatformPendingUsersRoute
   AppPlatformRestaurantsRoute: typeof AppPlatformRestaurantsRoute
-  AppWaiterOrdersRoute: typeof AppWaiterOrdersRouteWithChildren
   AppWaiterTablesRoute: typeof AppWaiterTablesRoute
   AppAdminIndexRoute: typeof AppAdminIndexRoute
   AppKitchenIndexRoute: typeof AppKitchenIndexRoute
   AppCashierOrdersIdRoute: typeof AppCashierOrdersIdRoute
+  AppWaiterOrdersIdRoute: typeof AppWaiterOrdersIdRoute
+  AppWaiterOrdersIndexRoute: typeof AppWaiterOrdersIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -433,11 +422,12 @@ const AppRouteChildren: AppRouteChildren = {
   AppCashierTablesRoute: AppCashierTablesRoute,
   AppPlatformPendingUsersRoute: AppPlatformPendingUsersRoute,
   AppPlatformRestaurantsRoute: AppPlatformRestaurantsRoute,
-  AppWaiterOrdersRoute: AppWaiterOrdersRouteWithChildren,
   AppWaiterTablesRoute: AppWaiterTablesRoute,
   AppAdminIndexRoute: AppAdminIndexRoute,
   AppKitchenIndexRoute: AppKitchenIndexRoute,
   AppCashierOrdersIdRoute: AppCashierOrdersIdRoute,
+  AppWaiterOrdersIdRoute: AppWaiterOrdersIdRoute,
+  AppWaiterOrdersIndexRoute: AppWaiterOrdersIndexRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

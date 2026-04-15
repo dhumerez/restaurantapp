@@ -15,6 +15,7 @@ export const user = pgTable("user", {
     .$type<"superadmin" | "admin" | "waiter" | "kitchen" | "cashier">(),
   restaurantId: uuid("restaurant_id"),
   isActive: boolean("is_active").notNull().default(true),
+  isAnonymous: boolean("is_anonymous").notNull().default(false),
   createdAt: timestamp("created_at").notNull(),
   updatedAt: timestamp("updated_at").notNull(),
 });
