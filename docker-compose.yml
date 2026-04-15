@@ -2,50 +2,55 @@ services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-restaurant_pos}
+      POSTGRES_DB: restaurant
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-devpassword}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
       timeout: 5s
       retries: 5
 
-  backend:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  server:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: apps/server/Dockerfile.dev
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis:    { condition: service_healthy }
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-devpassword}@postgres:5432/restaurant
+      REDIS_URL: redis://redis:6379
     ports:
       - "3000:3000"
-    environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-restaurant_pos}
-      JWT_SECRET: ${JWT_SECRET:-dev-jwt-secret-change-this-in-production-minimum-32chars}
-      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-dev-refresh-secret-change-this-in-production-min32}
-      PORT: 3000
-      NODE_ENV: ${NODE_ENV:-development}
-      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173}
-    depends_on:
-      postgres:
-        condition: service_healthy
     volumes:
-      - ./backend/src:/app/src
+      - ./apps/server/src:/app/apps/server/src
+      - ./packages:/app/packages
 
-  frontend:
+  web:
     build:
-      context: ./frontend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: apps/web/Dockerfile.dev
+    env_file: .env
     ports:
       - "5173:5173"
-    environment:
-      VITE_API_URL: http://localhost:3000
     volumes:
-      - ./frontend/src:/app/src
-      - ./frontend/index.html:/app/index.html
-      - ./frontend/tailwind.config.ts:/app/tailwind.config.ts
+      - ./apps/web/src:/app/apps/web/src
 
 volumes:
-  pgdata:
+  postgres_data:

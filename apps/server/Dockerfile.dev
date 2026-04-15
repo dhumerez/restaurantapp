@@ -1,0 +1,9 @@
+FROM node:22-alpine
+RUN npm install -g pnpm tsx
+WORKDIR /app
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY apps/server/package.json ./apps/server/
+COPY packages/db/package.json ./packages/db/
+RUN pnpm install --frozen-lockfile
+COPY . .
+CMD ["tsx", "watch", "apps/server/src/index.ts"]
