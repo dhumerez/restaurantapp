@@ -4,17 +4,42 @@ import { useState } from "react";
 import { authClient } from "../auth.js";
 import { useNotificationStore } from "../store/notificationStore.js";
 
-type NavItem = { to: string; label: string; icon: React.ReactNode; roles: string[] };
+type NavItem = {
+  to: string;
+  label: string;
+  icon: React.ReactNode;
+  roles: string[];
+  // If provided, decides active state instead of default startsWith.
+  isActive?: (path: string) => boolean;
+};
+
+const exact = (to: string) => (path: string) => path === to;
 
 const navItems: NavItem[] = [
-  { to: "/admin", label: "Panel", icon: <LayoutDashboard size={18} />, roles: ["admin"] },
+  { to: "/admin", label: "Panel", icon: <LayoutDashboard size={18} />, roles: ["admin"], isActive: exact("/admin") },
   { to: "/admin/menu", label: "Menú", icon: <UtensilsCrossed size={18} />, roles: ["admin"] },
   { to: "/admin/staff", label: "Personal", icon: <Users size={18} />, roles: ["admin"] },
   { to: "/admin/tables", label: "Mesas", icon: <ClipboardList size={18} />, roles: ["admin"] },
   { to: "/admin/inventory", label: "Inventario", icon: <Warehouse size={18} />, roles: ["admin"] },
   { to: "/admin/reports", label: "Reportes", icon: <ShoppingBag size={18} />, roles: ["admin"] },
-  { to: "/waiter/tables", label: "Mesas", icon: <ClipboardList size={18} />, roles: ["waiter"] },
-  { to: "/waiter/orders", label: "Pedidos", icon: <ShoppingBag size={18} />, roles: ["waiter"] },
+  {
+    to: "/waiter/tables",
+    label: "Mesas",
+    icon: <ClipboardList size={18} />,
+    roles: ["waiter"],
+    // Creating/editing an order from a table is still the Mesas flow.
+    isActive: (path) =>
+      path === "/waiter/tables" ||
+      path === "/waiter/orders/new" ||
+      /^\/waiter\/orders\/[^/]+$/.test(path),
+  },
+  {
+    to: "/waiter/orders",
+    label: "Pedidos",
+    icon: <ShoppingBag size={18} />,
+    roles: ["waiter"],
+    isActive: exact("/waiter/orders"),
+  },
   { to: "/cashier/tables", label: "Mesas", icon: <ClipboardList size={18} />, roles: ["cashier"] },
   { to: "/kitchen", label: "Cocina", icon: <ChefHat size={18} />, roles: ["kitchen"] },
 ];
@@ -42,12 +67,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <span className="font-bold text-accent">Tu Restaurante</span>
         </div>
         <nav className="flex-1 p-3 space-y-1">
-          {roleNavItems.map((item) => (
+          {roleNavItems.map((item) => {
+            const active = item.isActive
+              ? item.isActive(currentPath)
+              : currentPath.startsWith(item.to);
+            return (
             <Link
               key={item.to}
               to={item.to}
               className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
-                currentPath.startsWith(item.to)
+                active
                   ? "bg-accent text-black font-medium"
                   : "text-muted hover:text-white hover:bg-border"
               }`}
@@ -55,7 +84,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               {item.icon}
               {item.label}
             </Link>
-          ))}
+            );
+          })}
         </nav>
         <div className="p-3 border-t border-border">
           <div className="text-xs text-muted mb-2 px-3">{session?.user.email}</div>

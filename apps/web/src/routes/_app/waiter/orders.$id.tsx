@@ -16,6 +16,10 @@ function OrderPage() {
   const { data: categories = [] } = trpc.menu.listCategories.useQuery();
   const { data: menuItemsData = [] } = trpc.menu.listItems.useQuery();
   const { data: order } = trpc.orders.get.useQuery({ id }, { enabled: !isNew });
+  const { data: tables = [] } = trpc.tables.list.useQuery();
+
+  const activeTableId = isNew ? search.tableId : order?.tableId;
+  const table = (tables as any[]).find((t) => t.id === activeTableId);
 
   const [cart, setCart] = useState<Map<string, { item: any; qty: number }>>(new Map());
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -95,10 +99,23 @@ function OrderPage() {
     <div className="flex flex-col md:flex-row gap-6 h-full">
       {/* Menu panel */}
       <div className="flex-1 min-w-0 space-y-4">
-        <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold">{isNew ? "Nuevo pedido" : `Pedido #${id.slice(0, 8)}`}</h1>
-          {!isNew && order?.status !== "draft" && (
-            <span className="text-xs bg-amber-900/30 text-amber-400 px-2 py-1 rounded capitalize">{order?.status}</span>
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <button
+              onClick={() => navigate({ to: "/waiter/tables" })}
+              className="text-xs text-muted hover:text-white flex items-center gap-1 mb-1"
+            >
+              ← Volver a mesas
+            </button>
+            <h1 className="text-xl font-bold truncate">
+              {table ? `Mesa ${table.number}${table.label ? ` · ${table.label}` : ""}` : "—"}
+            </h1>
+            <div className="text-xs text-muted mt-0.5">
+              {isNew ? "Nuevo pedido" : `Pedido #${id.slice(0, 8)}`}
+            </div>
+          </div>
+          {!isNew && order?.status && order.status !== "draft" && (
+            <span className="text-xs bg-amber-900/30 text-amber-400 px-2 py-1 rounded capitalize shrink-0">{order.status}</span>
           )}
         </div>
 
