@@ -47,6 +47,8 @@ services:
       context: .
       dockerfile: apps/web/Dockerfile.dev
     env_file: .env
+    environment:
+      VITE_API_URL: http://server:3000
     ports:
       - "5173:5173"
     volumes:
