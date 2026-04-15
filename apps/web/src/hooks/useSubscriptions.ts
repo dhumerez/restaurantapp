@@ -1,11 +1,10 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { trpc } from "../trpc.js";
 import { useNotificationStore } from "../store/notificationStore.js";
 import { authClient } from "../auth.js";
 
 /** Mount all 4 tRPC subscriptions once in the _app layout */
 export function useSubscriptions() {
-  const queryClient = useQueryClient();
+  const utils = trpc.useUtils();
   const addNotification = useNotificationStore((s) => s.addNotification);
   const { data: session } = authClient.useSession();
   const role = (session?.user as any)?.role;
@@ -14,8 +13,8 @@ export function useSubscriptions() {
   trpc.notifications.orders.onChange.useSubscription(undefined, {
     enabled: !!session?.user,
     onData(data) {
-      queryClient.invalidateQueries({ queryKey: ["orders"] });
-      queryClient.invalidateQueries({ queryKey: ["tables"] });
+      utils.orders.invalidate();
+      utils.tables.invalidate();
       if (data.event === "ready") {
         addNotification({
           type: "order_ready",
@@ -38,7 +37,7 @@ export function useSubscriptions() {
   trpc.notifications.kitchen.onChange.useSubscription(undefined, {
     enabled: role === "kitchen" || role === "admin",
     onData() {
-      queryClient.invalidateQueries({ queryKey: ["kitchen-orders"] });
+      utils.kitchen.invalidate();
     },
   });
 
@@ -59,7 +58,7 @@ export function useSubscriptions() {
   trpc.notifications.menu.onChange.useSubscription(undefined, {
     enabled: !!session?.user,
     onData() {
-      queryClient.invalidateQueries({ queryKey: ["menu"] });
+      utils.menu.invalidate();
     },
   });
 }

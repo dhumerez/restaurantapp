@@ -71,5 +71,13 @@ export default defineConfig({
       testMatch: /pwa\.spec\.ts/,
       use: { ...devices["Desktop Chrome"] },
     },
+    {
+      name: "realtime",
+      testMatch: /realtime\.spec\.ts/,
+      dependencies: ["setup"],
+      // This spec manages its own contexts — both kitchen and waiter storage
+      // states are loaded inside the test, so no project-level storageState.
+      use: { ...devices["Desktop Chrome"] },
+    },
   ],
 });
