@@ -27,7 +27,8 @@
     "sharp": "^0.34.5",
     "resend": "^4.5.2",
     "dotenv": "^16.4.7",
-    "eventemitter3": "^5.0.0"
+    "eventemitter3": "^5.0.0",
+    "node-cron": "^3.0.3"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
@@ -36,6 +37,7 @@
     "typescript": "^5.7.0",
     "vitest": "^4.1.0",
     "supertest": "^7.2.2",
-    "@types/supertest": "^6.0.0"
+    "@types/supertest": "^6.0.0",
+    "@types/node-cron": "^3.0.11"
   }
 }
