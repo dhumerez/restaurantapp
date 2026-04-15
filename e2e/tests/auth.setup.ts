@@ -34,3 +34,12 @@ setup("login as kitchen", async ({ page }) => {
   await expect(page).toHaveURL(/\/kitchen/, { timeout: 10000 });
   await page.context().storageState({ path: path.join(STORAGE_DIR, "kitchen.json") });
 });
+
+setup("login as cashier", async ({ page }) => {
+  await page.goto("login");
+  await page.getByLabel(/correo electrónico/i).fill("cashier@demo.com");
+  await page.getByLabel(/contraseña/i).fill("password123");
+  await page.getByRole("button", { name: /iniciar sesión/i }).click();
+  await expect(page).toHaveURL(/\/cashier/, { timeout: 10000 });
+  await page.context().storageState({ path: path.join(STORAGE_DIR, "cashier.json") });
+});

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { router, protectedProcedure } from "../trpc/trpc.js";
 import { pushSubscriptions } from "@restaurant/db";
 import webpush from "web-push";
@@ -57,6 +57,12 @@ export const pushRouter = router({
           userId: ctx.user!.id,
           ...input,
         });
+      } else if (existing[0].userId !== ctx.user!.id) {
+        // Re-assign endpoint to current user (shared device scenario)
+        await ctx.db
+          .update(pushSubscriptions)
+          .set({ userId: ctx.user!.id, updatedAt: new Date() })
+          .where(eq(pushSubscriptions.endpoint, input.endpoint));
       }
       return { success: true };
     }),
@@ -66,7 +72,12 @@ export const pushRouter = router({
     .mutation(async ({ ctx, input }) => {
       await ctx.db
         .delete(pushSubscriptions)
-        .where(eq(pushSubscriptions.endpoint, input.endpoint));
+        .where(
+          and(
+            eq(pushSubscriptions.endpoint, input.endpoint),
+            eq(pushSubscriptions.userId, ctx.user!.id)
+          )
+        );
       return { success: true };
     }),
 

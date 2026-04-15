@@ -58,6 +58,15 @@ export default defineConfig({
       },
     },
     {
+      name: "cashier",
+      testMatch: /cashier\.spec\.ts/,
+      dependencies: ["setup"],
+      use: {
+        ...devices["Desktop Chrome"],
+        storageState: path.join(STORAGE_DIR, "cashier.json"),
+      },
+    },
+    {
       name: "pwa",
       testMatch: /pwa\.spec\.ts/,
       use: { ...devices["Desktop Chrome"] },

@@ -6,4 +6,6 @@ import { startDemoCron } from "./lib/demoCron.js";
 const app = await buildApp();
 await app.listen({ port: env.PORT, host: "0.0.0.0" });
 console.log(`Server running on port ${env.PORT}`);
-startDemoCron();
+if (env.NODE_ENV === "production") {
+  startDemoCron();
+}
