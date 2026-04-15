@@ -9,6 +9,7 @@ import { notificationsRouter } from "./notifications.js";
 import { authRouter } from "./auth.js";
 import { inventoryRouter } from "./inventory.js";
 import { superadminRouter } from "./superadmin.js";
+import { pushRouter } from "./push.js";
 
 export const appRouter = router({
   auth: authRouter,
@@ -21,6 +22,7 @@ export const appRouter = router({
   notifications: notificationsRouter,
   inventory: inventoryRouter,
   superadmin: superadminRouter,
+  push: pushRouter,
 });
 
 export type AppRouter = typeof appRouter;

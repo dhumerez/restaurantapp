@@ -4,6 +4,7 @@ import { router, kitchenProcedure } from "../trpc/trpc.js";
 import { orders, orderItems, orderEvents, recipeItems, ingredients, inventoryTransactions } from "@restaurant/db";
 import { emitter } from "../lib/emitter.js";
 import { TRPCError } from "@trpc/server";
+import { sendPushNotification } from "./push.js";
 
 /** Auto-promote order status based on item states.
  *  BUG FIX: was missing order:ready emission in old app.
@@ -61,6 +62,11 @@ async function syncOrderStatus(
     emitter.emitOrderChange(restaurantId, {
       event: "ready",
       order: { ...updatedOrder, items: allItems } as any,
+    });
+    await sendPushNotification(db, order.waiterId, {
+      title: "Order Ready",
+      body: `Table order is ready to serve`,
+      url: `/waiter/orders/${orderId}`,
     });
   } else {
     emitter.emitOrderChange(restaurantId, {
