@@ -39,10 +39,26 @@ test.describe("Admin Flow", () => {
     await expect(page.getByText(/gestión de personal/i)).toBeVisible({ timeout: 5000 });
   });
 
+  test("staff management page shows seeded staff members", async ({ page }) => {
+    await page.goto("admin/staff");
+    await expect(page).toHaveURL(/\/admin\/staff/);
+    // Seed creates admin, waiter (María), kitchen (Carlos) — at least 3 members
+    await expect(page.getByText(/admin@demo\.com/i)).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText(/waiter@demo\.com/i)).toBeVisible({ timeout: 5000 });
+  });
+
   test("can navigate to table management via dashboard card", async ({ page }) => {
     await page.getByText(/gestionar mesas/i).click();
     await expect(page).toHaveURL(/\/admin\/tables/);
     await expect(page.getByText(/gestión de mesas/i)).toBeVisible({ timeout: 5000 });
+  });
+
+  test("table management page shows seeded tables", async ({ page }) => {
+    await page.goto("admin/tables");
+    await expect(page).toHaveURL(/\/admin\/tables/);
+    // Seed creates 10 tables labelled "Indoor 1"–"Indoor 6", "Patio 1"–"Patio 4"
+    await expect(page.getByText(/Indoor 1/i)).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText(/Patio 1/i)).toBeVisible({ timeout: 5000 });
   });
 
   test("can navigate to reports", async ({ page }) => {

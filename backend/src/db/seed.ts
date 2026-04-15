@@ -49,6 +49,7 @@ async function seed() {
       ...userData,
       restaurantId: restaurant.id,
       passwordHash,
+      isEmailVerified: true,
     });
     console.log(`Created user: ${userData.name} (${userData.role})`);
   }
