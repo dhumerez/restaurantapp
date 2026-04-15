@@ -4,6 +4,7 @@
     "build": { "dependsOn": ["^build"], "outputs": ["dist/**"] },
     "dev": { "dependsOn": ["^build"], "persistent": true },
     "test": { "dependsOn": ["^build"] },
+    "lint": { "dependsOn": ["^lint"] },
     "db:generate": { "cache": false },
     "db:migrate": { "cache": false }
   }
