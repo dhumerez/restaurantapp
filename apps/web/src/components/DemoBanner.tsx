@@ -21,7 +21,7 @@ export function DemoBanner() {
 
   return (
     <div className="bg-accent text-black text-sm px-4 py-2 flex items-center justify-between flex-wrap gap-2">
-      <span className="font-semibold">Demo Mode — {role}</span>
+      <span className="font-semibold">Modo Demo — {role}</span>
       <div className="flex gap-2">
         {roles
           .filter((r) => r !== role)
@@ -31,7 +31,7 @@ export function DemoBanner() {
               onClick={() => createDemo.mutate({ role: r })}
               className="bg-black/20 hover:bg-black/30 px-3 py-1 rounded text-xs font-medium transition-colors"
             >
-              Switch to {r}
+              Cambiar a {r}
             </button>
           ))}
       </div>

@@ -73,12 +73,12 @@ function AdminInventoryPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Inventory</h1>
+        <h1 className="text-2xl font-bold">Inventario</h1>
         <button
           onClick={() => setShowAddModal(true)}
           className="bg-accent text-black font-semibold rounded-lg px-4 py-2 text-sm hover:bg-accent/80"
         >
-          + Add Ingredient
+          + Agregar ingrediente
         </button>
       </div>
 
@@ -86,12 +86,12 @@ function AdminInventoryPage() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border">
-              <th className="text-left text-muted font-medium px-4 py-3">Name</th>
-              <th className="text-left text-muted font-medium px-4 py-3">Unit</th>
+              <th className="text-left text-muted font-medium px-4 py-3">Nombre</th>
+              <th className="text-left text-muted font-medium px-4 py-3">Unidad</th>
               <th className="text-left text-muted font-medium px-4 py-3">Stock</th>
-              <th className="text-left text-muted font-medium px-4 py-3">Min Stock</th>
-              <th className="text-left text-muted font-medium px-4 py-3">Cost/Unit</th>
-              <th className="text-left text-muted font-medium px-4 py-3">Actions</th>
+              <th className="text-left text-muted font-medium px-4 py-3">Stock mínimo</th>
+              <th className="text-left text-muted font-medium px-4 py-3">Costo/unidad</th>
+              <th className="text-left text-muted font-medium px-4 py-3">Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -106,7 +106,7 @@ function AdminInventoryPage() {
                     {ing.name}
                     {isLow && (
                       <span className="ml-2 text-xs text-amber-400 border border-amber-700 rounded px-1">
-                        Low
+                        Bajo
                       </span>
                     )}
                   </td>
@@ -122,13 +122,13 @@ function AdminInventoryPage() {
                         onClick={() => setRestockTarget(ing)}
                         className="border border-border rounded-lg px-3 py-1 text-xs hover:bg-background"
                       >
-                        Restock
+                        Reabastecer
                       </button>
                       <button
                         onClick={() => remove.mutate({ id: ing.id })}
                         className="border border-destructive text-destructive rounded-lg px-3 py-1 text-xs hover:bg-destructive/10"
                       >
-                        Delete
+                        Eliminar
                       </button>
                     </div>
                   </td>
@@ -143,10 +143,10 @@ function AdminInventoryPage() {
       {showAddModal && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
           <div className="bg-surface border border-border rounded-xl p-6 w-full max-w-sm space-y-4">
-            <h2 className="font-semibold text-lg">Add Ingredient</h2>
+            <h2 className="font-semibold text-lg">Agregar ingrediente</h2>
             <form onSubmit={handleCreate} className="space-y-3">
               <div>
-                <label className="block text-sm text-muted mb-1">Name</label>
+                <label className="block text-sm text-muted mb-1">Nombre</label>
                 <input
                   required
                   value={addForm.name}
@@ -155,7 +155,7 @@ function AdminInventoryPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm text-muted mb-1">Unit</label>
+                <label className="block text-sm text-muted mb-1">Unidad</label>
                 <select
                   value={addForm.unit}
                   onChange={(e) => setAddForm((f) => ({ ...f, unit: e.target.value }))}
@@ -169,7 +169,7 @@ function AdminInventoryPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm text-muted mb-1">Current Stock</label>
+                <label className="block text-sm text-muted mb-1">Stock actual</label>
                 <input
                   required
                   type="number"
@@ -181,7 +181,7 @@ function AdminInventoryPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm text-muted mb-1">Min Stock</label>
+                <label className="block text-sm text-muted mb-1">Stock mínimo</label>
                 <input
                   required
                   type="number"
@@ -193,7 +193,7 @@ function AdminInventoryPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm text-muted mb-1">Cost per Unit ($)</label>
+                <label className="block text-sm text-muted mb-1">Costo por unidad ($)</label>
                 <input
                   required
                   type="number"
@@ -210,14 +210,14 @@ function AdminInventoryPage() {
                   onClick={() => setShowAddModal(false)}
                   className="flex-1 border border-border rounded-lg px-4 py-2 text-sm hover:bg-background"
                 >
-                  Cancel
+                  Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={createIngredient.isPending}
                   className="flex-1 bg-accent text-black font-semibold rounded-lg px-4 py-2 text-sm hover:bg-accent/80 disabled:opacity-50"
                 >
-                  {createIngredient.isPending ? "Adding…" : "Add"}
+                  {createIngredient.isPending ? "Agregando…" : "Agregar"}
                 </button>
               </div>
             </form>
@@ -229,11 +229,11 @@ function AdminInventoryPage() {
       {restockTarget && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
           <div className="bg-surface border border-border rounded-xl p-6 w-full max-w-sm space-y-4">
-            <h2 className="font-semibold text-lg">Restock — {restockTarget.name}</h2>
+            <h2 className="font-semibold text-lg">Reabastecer — {restockTarget.name}</h2>
             <form onSubmit={handleRestock} className="space-y-3">
               <div>
                 <label className="block text-sm text-muted mb-1">
-                  Quantity to add ({restockTarget.unit})
+                  Cantidad a agregar ({restockTarget.unit})
                 </label>
                 <input
                   required
@@ -246,7 +246,7 @@ function AdminInventoryPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm text-muted mb-1">Notes (optional)</label>
+                <label className="block text-sm text-muted mb-1">Notas (opcional)</label>
                 <input
                   value={restockForm.notes}
                   onChange={(e) => setRestockForm((f) => ({ ...f, notes: e.target.value }))}
@@ -259,14 +259,14 @@ function AdminInventoryPage() {
                   onClick={() => setRestockTarget(null)}
                   className="flex-1 border border-border rounded-lg px-4 py-2 text-sm hover:bg-background"
                 >
-                  Cancel
+                  Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={restock.isPending}
                   className="flex-1 bg-accent text-black font-semibold rounded-lg px-4 py-2 text-sm hover:bg-accent/80 disabled:opacity-50"
                 >
-                  {restock.isPending ? "Saving…" : "Restock"}
+                  {restock.isPending ? "Guardando…" : "Reabastecer"}
                 </button>
               </div>
             </form>

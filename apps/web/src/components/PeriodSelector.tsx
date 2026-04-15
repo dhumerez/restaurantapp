@@ -1,6 +1,6 @@
 type Period = "day" | "week" | "month";
 
-const LABELS: Record<Period, string> = { day: "Today", week: "This Week", month: "This Month" };
+const LABELS: Record<Period, string> = { day: "Hoy", week: "Esta semana", month: "Este mes" };
 
 export function PeriodSelector({
   value,

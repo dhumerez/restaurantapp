@@ -33,7 +33,7 @@ function KitchenPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <span className="text-muted">Loading orders…</span>
+        <span className="text-muted">Cargando pedidos…</span>
       </div>
     );
   }
@@ -41,12 +41,12 @@ function KitchenPage() {
   return (
     <div className="min-h-screen bg-background p-4">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Kitchen Display</h1>
-        <span className="text-muted text-sm">{orders.length} active order{orders.length !== 1 ? "s" : ""}</span>
+        <h1 className="text-2xl font-bold">Pantalla de cocina</h1>
+        <span className="text-muted text-sm">{orders.length} pedido{orders.length !== 1 ? "s" : ""} activo{orders.length !== 1 ? "s" : ""}</span>
       </div>
 
       {orders.length === 0 ? (
-        <div className="text-center text-muted py-20">No active orders</div>
+        <div className="text-center text-muted py-20">No hay pedidos activos</div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {orders.map((order: any) => (
@@ -55,7 +55,7 @@ function KitchenPage() {
                 order.status === "placed" ? "bg-amber-900/30 border-b border-amber-700" : "bg-blue-900/30 border-b border-blue-700"
               }`}>
                 <div>
-                  <span className="font-bold">Table {order.tableId ? `#${order.tableId.slice(0, 4)}` : "—"}</span>
+                  <span className="font-bold">Mesa {order.tableId ? `#${order.tableId.slice(0, 4)}` : "—"}</span>
                   <span className="text-xs text-muted ml-2">
                     {new Date(order.createdAt).toLocaleTimeString()}
                   </span>
@@ -84,7 +84,7 @@ function KitchenPage() {
                             onClick={() => markItemPreparing(item.id)}
                             className="text-xs bg-blue-700 hover:bg-blue-600 text-white px-2 py-1 rounded"
                           >
-                            Start
+                            Iniciar
                           </button>
                         )}
                         {item.status === "preparing" && (
@@ -92,7 +92,7 @@ function KitchenPage() {
                             onClick={() => markItemReady(item.id)}
                             className="text-xs bg-green-700 hover:bg-green-600 text-white px-2 py-1 rounded"
                           >
-                            Ready
+                            Listo
                           </button>
                         )}
                         {(item.status === "pending" || item.status === "preparing") && (

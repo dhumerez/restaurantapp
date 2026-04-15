@@ -19,16 +19,16 @@ export function useSubscriptions() {
       if (data.event === "ready") {
         addNotification({
           type: "order_ready",
-          title: "Order Ready",
-          message: `Order is ready to serve`,
+          title: "Pedido listo",
+          message: `El pedido está listo para servir`,
           url: `/waiter/orders/${data.order.id}`,
         });
       }
       if (data.event === "placed") {
         addNotification({
           type: "order_placed",
-          title: "New Order",
-          message: `New order placed`,
+          title: "Nuevo pedido",
+          message: `Se registró un nuevo pedido`,
         });
       }
     },
@@ -48,8 +48,8 @@ export function useSubscriptions() {
     onData(data) {
       addNotification({
         type: "low_stock",
-        title: "Low Stock Alert",
-        message: `${data.ingredient.name}: ${data.ingredient.currentStock} ${data.ingredient.unit} remaining`,
+        title: "Alerta de stock bajo",
+        message: `${data.ingredient.name}: quedan ${data.ingredient.currentStock} ${data.ingredient.unit}`,
         url: "/admin/inventory",
       });
     },

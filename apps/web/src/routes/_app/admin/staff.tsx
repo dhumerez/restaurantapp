@@ -35,12 +35,12 @@ function AdminStaffPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Staff</h1>
+        <h1 className="text-2xl font-bold">Personal</h1>
         <button
           onClick={() => setShowModal(true)}
           className="bg-accent text-black font-semibold rounded-lg px-4 py-2 text-sm hover:bg-accent/80"
         >
-          + Add Staff
+          + Agregar miembro
         </button>
       </div>
 
@@ -48,10 +48,10 @@ function AdminStaffPage() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border">
-              <th className="text-left text-muted font-medium px-4 py-3">Name</th>
-              <th className="text-left text-muted font-medium px-4 py-3">Email</th>
-              <th className="text-left text-muted font-medium px-4 py-3">Role</th>
-              <th className="text-left text-muted font-medium px-4 py-3">Status</th>
+              <th className="text-left text-muted font-medium px-4 py-3">Nombre</th>
+              <th className="text-left text-muted font-medium px-4 py-3">Correo</th>
+              <th className="text-left text-muted font-medium px-4 py-3">Rol</th>
+              <th className="text-left text-muted font-medium px-4 py-3">Estado</th>
             </tr>
           </thead>
           <tbody>
@@ -81,7 +81,7 @@ function AdminStaffPage() {
                         : "bg-red-900/30 text-red-400 border-red-700"
                     }`}
                   >
-                    {member.isActive ? "Active" : "Inactive"}
+                    {member.isActive ? "Activo" : "Inactivo"}
                   </button>
                 </td>
               </tr>
@@ -93,10 +93,10 @@ function AdminStaffPage() {
       {showModal && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
           <div className="bg-surface border border-border rounded-xl p-6 w-full max-w-sm space-y-4">
-            <h2 className="font-semibold text-lg">Add Staff Member</h2>
+            <h2 className="font-semibold text-lg">Agregar miembro del personal</h2>
             <form onSubmit={handleCreate} className="space-y-3">
               <div>
-                <label className="block text-sm text-muted mb-1">Name</label>
+                <label className="block text-sm text-muted mb-1">Nombre</label>
                 <input
                   required
                   value={form.name}
@@ -105,7 +105,7 @@ function AdminStaffPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm text-muted mb-1">Email</label>
+                <label className="block text-sm text-muted mb-1">Correo electrónico</label>
                 <input
                   required
                   type="email"
@@ -115,7 +115,7 @@ function AdminStaffPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm text-muted mb-1">Password</label>
+                <label className="block text-sm text-muted mb-1">Contraseña</label>
                 <input
                   required
                   type="password"
@@ -125,7 +125,7 @@ function AdminStaffPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm text-muted mb-1">Role</label>
+                <label className="block text-sm text-muted mb-1">Rol</label>
                 <select
                   value={form.role}
                   onChange={(e) => setForm((f) => ({ ...f, role: e.target.value }))}
@@ -144,14 +144,14 @@ function AdminStaffPage() {
                   onClick={() => setShowModal(false)}
                   className="flex-1 border border-border rounded-lg px-4 py-2 text-sm hover:bg-background"
                 >
-                  Cancel
+                  Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={create.isPending}
                   className="flex-1 bg-accent text-black font-semibold rounded-lg px-4 py-2 text-sm hover:bg-accent/80 disabled:opacity-50"
                 >
-                  {create.isPending ? "Adding…" : "Add"}
+                  {create.isPending ? "Agregando…" : "Agregar"}
                 </button>
               </div>
             </form>

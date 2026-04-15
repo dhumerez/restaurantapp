@@ -100,19 +100,19 @@ function AdminMenuPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Menu Management</h1>
+        <h1 className="text-2xl font-bold">Gestión del menú</h1>
         <div className="flex gap-2">
           <button
             onClick={() => setShowCatModal(true)}
             className="border border-border rounded-lg px-4 py-2 text-sm hover:bg-surface"
           >
-            + Add Category
+            + Agregar categoría
           </button>
           <button
             onClick={() => setShowAddItem(true)}
             className="bg-accent text-black font-semibold rounded-lg px-4 py-2 text-sm hover:bg-accent/80"
           >
-            + Add Item
+            + Agregar producto
           </button>
         </div>
       </div>
@@ -126,7 +126,7 @@ function AdminMenuPage() {
               selectedCategoryId === null ? "bg-accent text-black font-semibold" : "hover:bg-surface"
             }`}
           >
-            All Items
+            Todos los productos
           </button>
           {(categories as any[]).map((cat: any) => (
             <button
@@ -148,10 +148,10 @@ function AdminMenuPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border">
-                <th className="text-left text-muted font-medium px-4 py-3">Name</th>
-                <th className="text-left text-muted font-medium px-4 py-3">Price</th>
-                <th className="text-left text-muted font-medium px-4 py-3">Available</th>
-                <th className="text-left text-muted font-medium px-4 py-3">Actions</th>
+                <th className="text-left text-muted font-medium px-4 py-3">Nombre</th>
+                <th className="text-left text-muted font-medium px-4 py-3">Precio</th>
+                <th className="text-left text-muted font-medium px-4 py-3">Disponible</th>
+                <th className="text-left text-muted font-medium px-4 py-3">Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -167,7 +167,7 @@ function AdminMenuPage() {
                           : "bg-gray-900/30 text-gray-400 border-gray-700"
                       }`}
                     >
-                      {item.isAvailable ? "Yes" : "No"}
+                      {item.isAvailable ? "Sí" : "No"}
                     </span>
                   </td>
                   <td className="px-4 py-3">
@@ -176,13 +176,13 @@ function AdminMenuPage() {
                         onClick={() => openEdit(item)}
                         className="border border-border rounded-lg px-3 py-1 text-xs hover:bg-background"
                       >
-                        Edit
+                        Editar
                       </button>
                       <button
                         onClick={() => deleteItem.mutate({ id: item.id })}
                         className="border border-destructive text-destructive rounded-lg px-3 py-1 text-xs hover:bg-destructive/10"
                       >
-                        Delete
+                        Eliminar
                       </button>
                     </div>
                   </td>
@@ -191,7 +191,7 @@ function AdminMenuPage() {
               {filteredItems.length === 0 && (
                 <tr>
                   <td colSpan={4} className="px-4 py-8 text-center text-muted">
-                    No items in this category.
+                    No hay productos en esta categoría.
                   </td>
                 </tr>
               )}
@@ -204,10 +204,10 @@ function AdminMenuPage() {
       {showCatModal && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
           <div className="bg-surface border border-border rounded-xl p-6 w-full max-w-sm space-y-4">
-            <h2 className="font-semibold text-lg">Add Category</h2>
+            <h2 className="font-semibold text-lg">Agregar categoría</h2>
             <form onSubmit={handleCreateCategory} className="space-y-3">
               <div>
-                <label className="block text-sm text-muted mb-1">Name</label>
+                <label className="block text-sm text-muted mb-1">Nombre</label>
                 <input
                   required
                   value={catName}
@@ -221,14 +221,14 @@ function AdminMenuPage() {
                   onClick={() => setShowCatModal(false)}
                   className="flex-1 border border-border rounded-lg px-4 py-2 text-sm hover:bg-background"
                 >
-                  Cancel
+                  Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={createCategory.isPending}
                   className="flex-1 bg-accent text-black font-semibold rounded-lg px-4 py-2 text-sm hover:bg-accent/80 disabled:opacity-50"
                 >
-                  {createCategory.isPending ? "Adding…" : "Add"}
+                  {createCategory.isPending ? "Agregando…" : "Agregar"}
                 </button>
               </div>
             </form>
@@ -240,10 +240,10 @@ function AdminMenuPage() {
       {showAddItem && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
           <div className="bg-surface border border-border rounded-xl p-6 w-full max-w-sm space-y-4">
-            <h2 className="font-semibold text-lg">Add Menu Item</h2>
+            <h2 className="font-semibold text-lg">Agregar producto</h2>
             <form onSubmit={handleCreateItem} className="space-y-3">
               <div>
-                <label className="block text-sm text-muted mb-1">Name</label>
+                <label className="block text-sm text-muted mb-1">Nombre</label>
                 <input
                   required
                   value={addItemForm.name}
@@ -252,7 +252,7 @@ function AdminMenuPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm text-muted mb-1">Description (optional)</label>
+                <label className="block text-sm text-muted mb-1">Descripción (opcional)</label>
                 <input
                   value={addItemForm.description}
                   onChange={(e) => setAddItemForm((f) => ({ ...f, description: e.target.value }))}
@@ -260,7 +260,7 @@ function AdminMenuPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm text-muted mb-1">Price ($)</label>
+                <label className="block text-sm text-muted mb-1">Precio ($)</label>
                 <input
                   required
                   type="number"
@@ -272,14 +272,14 @@ function AdminMenuPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm text-muted mb-1">Category</label>
+                <label className="block text-sm text-muted mb-1">Categoría</label>
                 <select
                   required
                   value={addItemForm.categoryId}
                   onChange={(e) => setAddItemForm((f) => ({ ...f, categoryId: e.target.value }))}
                   className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm"
                 >
-                  <option value="">Select category…</option>
+                  <option value="">Selecciona una categoría…</option>
                   {(categories as any[]).map((cat: any) => (
                     <option key={cat.id} value={cat.id}>
                       {cat.name}
@@ -293,14 +293,14 @@ function AdminMenuPage() {
                   onClick={() => setShowAddItem(false)}
                   className="flex-1 border border-border rounded-lg px-4 py-2 text-sm hover:bg-background"
                 >
-                  Cancel
+                  Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={createItem.isPending}
                   className="flex-1 bg-accent text-black font-semibold rounded-lg px-4 py-2 text-sm hover:bg-accent/80 disabled:opacity-50"
                 >
-                  {createItem.isPending ? "Adding…" : "Add"}
+                  {createItem.isPending ? "Agregando…" : "Agregar"}
                 </button>
               </div>
             </form>
@@ -312,10 +312,10 @@ function AdminMenuPage() {
       {editItem && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
           <div className="bg-surface border border-border rounded-xl p-6 w-full max-w-md space-y-4 max-h-[90vh] overflow-y-auto">
-            <h2 className="font-semibold text-lg">Edit — {editItem.name}</h2>
+            <h2 className="font-semibold text-lg">Editar — {editItem.name}</h2>
             <form onSubmit={handleUpdateItem} className="space-y-3">
               <div>
-                <label className="block text-sm text-muted mb-1">Name</label>
+                <label className="block text-sm text-muted mb-1">Nombre</label>
                 <input
                   required
                   value={editForm.name}
@@ -324,7 +324,7 @@ function AdminMenuPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm text-muted mb-1">Price ($)</label>
+                <label className="block text-sm text-muted mb-1">Precio ($)</label>
                 <input
                   required
                   type="number"
@@ -343,7 +343,7 @@ function AdminMenuPage() {
                   onChange={(e) => setEditForm((f) => ({ ...f, isAvailable: e.target.checked }))}
                   className="w-4 h-4"
                 />
-                <label htmlFor="isAvailable" className="text-sm">Available</label>
+                <label htmlFor="isAvailable" className="text-sm">Disponible</label>
               </div>
               <div className="flex gap-2 pt-1">
                 <button
@@ -351,14 +351,14 @@ function AdminMenuPage() {
                   onClick={() => setEditItem(null)}
                   className="flex-1 border border-border rounded-lg px-4 py-2 text-sm hover:bg-background"
                 >
-                  Cancel
+                  Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={updateItem.isPending}
                   className="flex-1 bg-accent text-black font-semibold rounded-lg px-4 py-2 text-sm hover:bg-accent/80 disabled:opacity-50"
                 >
-                  {updateItem.isPending ? "Saving…" : "Save"}
+                  {updateItem.isPending ? "Guardando…" : "Guardar"}
                 </button>
               </div>
             </form>

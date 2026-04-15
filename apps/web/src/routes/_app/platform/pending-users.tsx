@@ -39,21 +39,21 @@ function PlatformPendingUsersPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Pending Users</h1>
+      <h1 className="text-2xl font-bold">Usuarios pendientes</h1>
 
       {(pendingUsers as any[]).length === 0 ? (
         <div className="bg-surface border border-border rounded-xl p-8 text-center text-muted">
-          No pending users at the moment.
+          No hay usuarios pendientes por el momento.
         </div>
       ) : (
         <div className="bg-surface border border-border rounded-xl overflow-hidden">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border">
-                <th className="text-left text-muted font-medium px-4 py-3">Name</th>
-                <th className="text-left text-muted font-medium px-4 py-3">Email</th>
-                <th className="text-left text-muted font-medium px-4 py-3">Registered</th>
-                <th className="text-left text-muted font-medium px-4 py-3">Action</th>
+                <th className="text-left text-muted font-medium px-4 py-3">Nombre</th>
+                <th className="text-left text-muted font-medium px-4 py-3">Correo</th>
+                <th className="text-left text-muted font-medium px-4 py-3">Registrado</th>
+                <th className="text-left text-muted font-medium px-4 py-3">Acción</th>
               </tr>
             </thead>
             <tbody>
@@ -69,7 +69,7 @@ function PlatformPendingUsersPage() {
                       onClick={() => setApproveTarget(user)}
                       className="bg-accent text-black font-semibold rounded-lg px-3 py-1.5 text-xs hover:bg-accent/80"
                     >
-                      Approve
+                      Aprobar
                     </button>
                   </td>
                 </tr>
@@ -82,13 +82,13 @@ function PlatformPendingUsersPage() {
       {approveTarget && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
           <div className="bg-surface border border-border rounded-xl p-6 w-full max-w-sm space-y-4">
-            <h2 className="font-semibold text-lg">Approve User</h2>
+            <h2 className="font-semibold text-lg">Aprobar usuario</h2>
             <p className="text-sm text-muted">
               {approveTarget.name} — {approveTarget.email}
             </p>
             <form onSubmit={handleApprove} className="space-y-3">
               <div>
-                <label className="block text-sm text-muted mb-1">Restaurant</label>
+                <label className="block text-sm text-muted mb-1">Restaurante</label>
                 <select
                   required
                   value={approveForm.restaurantId}
@@ -97,7 +97,7 @@ function PlatformPendingUsersPage() {
                   }
                   className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm"
                 >
-                  <option value="">Select restaurant…</option>
+                  <option value="">Selecciona un restaurante…</option>
                   {(restaurants as any[]).map((r: any) => (
                     <option key={r.id} value={r.id}>
                       {r.name}
@@ -106,7 +106,7 @@ function PlatformPendingUsersPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm text-muted mb-1">Role</label>
+                <label className="block text-sm text-muted mb-1">Rol</label>
                 <select
                   value={approveForm.role}
                   onChange={(e) => setApproveForm((f) => ({ ...f, role: e.target.value }))}
@@ -125,14 +125,14 @@ function PlatformPendingUsersPage() {
                   onClick={() => setApproveTarget(null)}
                   className="flex-1 border border-border rounded-lg px-4 py-2 text-sm hover:bg-background"
                 >
-                  Cancel
+                  Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={approve.isPending}
                   className="flex-1 bg-accent text-black font-semibold rounded-lg px-4 py-2 text-sm hover:bg-accent/80 disabled:opacity-50"
                 >
-                  {approve.isPending ? "Approving…" : "Approve"}
+                  {approve.isPending ? "Aprobando…" : "Aprobar"}
                 </button>
               </div>
             </form>

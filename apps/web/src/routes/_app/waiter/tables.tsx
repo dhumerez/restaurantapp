@@ -20,7 +20,7 @@ function TablesPage() {
     orders.map((o: any) => [o.tableId, o.status])
   );
 
-  if (isLoading) return <div className="text-muted">Loading tables…</div>;
+  if (isLoading) return <div className="text-muted">Cargando mesas…</div>;
 
   async function handleTableClick(tableId: string) {
     const activeOrder = orders.find((o: any) => o.tableId === tableId);
@@ -33,7 +33,7 @@ function TablesPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Tables</h1>
+      <h1 className="text-2xl font-bold">Mesas</h1>
       <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
         {tables.map((table: any) => {
           const orderStatus = tableOrderStatus.get(table.id);
@@ -46,15 +46,15 @@ function TablesPage() {
             >
               <div className="font-bold text-lg">{table.number}</div>
               {table.label && <div className="text-xs text-muted">{table.label}</div>}
-              <div className="text-xs mt-1 capitalize">{statusKey}</div>
+              <div className="text-xs mt-1 capitalize">{statusKey === "free" ? "Libre" : statusKey === "occupied" ? "Ocupada" : "Lista"}</div>
             </button>
           );
         })}
       </div>
       <div className="flex gap-4 text-xs text-muted">
-        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-surface border border-border inline-block" /> Free</span>
-        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-amber-900/30 border border-amber-600 inline-block" /> Occupied</span>
-        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-green-900/30 border border-green-600 inline-block" /> Ready</span>
+        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-surface border border-border inline-block" /> Libre</span>
+        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-amber-900/30 border border-amber-600 inline-block" /> Ocupada</span>
+        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-green-900/30 border border-green-600 inline-block" /> Lista</span>
       </div>
     </div>
   );

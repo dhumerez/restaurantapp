@@ -18,7 +18,7 @@ function CashierTablesPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Tables</h1>
+      <h1 className="text-2xl font-bold">Mesas</h1>
       <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
         {tables.map((table: any) => {
           const order = tableOrderMap.get(table.id);
@@ -37,7 +37,7 @@ function CashierTablesPage() {
             >
               <div className="font-bold text-lg">{table.number}</div>
               <div className="text-xs mt-1 capitalize text-muted">
-                {isReady ? "Ready to serve" : order ? order.status : "Free"}
+                {isReady ? "Lista para servir" : order ? order.status : "Libre"}
               </div>
               {order && (
                 <div className="text-xs text-accent mt-1">${order.total}</div>

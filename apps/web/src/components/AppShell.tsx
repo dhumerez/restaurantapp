@@ -7,16 +7,16 @@ import { useNotificationStore } from "../store/notificationStore.js";
 type NavItem = { to: string; label: string; icon: React.ReactNode; roles: string[] };
 
 const navItems: NavItem[] = [
-  { to: "/admin", label: "Dashboard", icon: <LayoutDashboard size={18} />, roles: ["admin"] },
-  { to: "/admin/menu", label: "Menu", icon: <UtensilsCrossed size={18} />, roles: ["admin"] },
-  { to: "/admin/staff", label: "Staff", icon: <Users size={18} />, roles: ["admin"] },
-  { to: "/admin/tables", label: "Tables", icon: <ClipboardList size={18} />, roles: ["admin"] },
-  { to: "/admin/inventory", label: "Inventory", icon: <Warehouse size={18} />, roles: ["admin"] },
-  { to: "/admin/reports", label: "Reports", icon: <ShoppingBag size={18} />, roles: ["admin"] },
-  { to: "/waiter/tables", label: "Tables", icon: <ClipboardList size={18} />, roles: ["waiter"] },
-  { to: "/waiter/orders", label: "Orders", icon: <ShoppingBag size={18} />, roles: ["waiter"] },
-  { to: "/cashier/tables", label: "Tables", icon: <ClipboardList size={18} />, roles: ["cashier"] },
-  { to: "/kitchen", label: "Kitchen", icon: <ChefHat size={18} />, roles: ["kitchen"] },
+  { to: "/admin", label: "Panel", icon: <LayoutDashboard size={18} />, roles: ["admin"] },
+  { to: "/admin/menu", label: "Menú", icon: <UtensilsCrossed size={18} />, roles: ["admin"] },
+  { to: "/admin/staff", label: "Personal", icon: <Users size={18} />, roles: ["admin"] },
+  { to: "/admin/tables", label: "Mesas", icon: <ClipboardList size={18} />, roles: ["admin"] },
+  { to: "/admin/inventory", label: "Inventario", icon: <Warehouse size={18} />, roles: ["admin"] },
+  { to: "/admin/reports", label: "Reportes", icon: <ShoppingBag size={18} />, roles: ["admin"] },
+  { to: "/waiter/tables", label: "Mesas", icon: <ClipboardList size={18} />, roles: ["waiter"] },
+  { to: "/waiter/orders", label: "Pedidos", icon: <ShoppingBag size={18} />, roles: ["waiter"] },
+  { to: "/cashier/tables", label: "Mesas", icon: <ClipboardList size={18} />, roles: ["cashier"] },
+  { to: "/kitchen", label: "Cocina", icon: <ChefHat size={18} />, roles: ["kitchen"] },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -63,7 +63,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             onClick={handleLogout}
             className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm text-muted hover:text-white hover:bg-border transition-colors"
           >
-            <LogOut size={18} /> Sign out
+            <LogOut size={18} /> Cerrar sesión
           </button>
         </div>
       </aside>

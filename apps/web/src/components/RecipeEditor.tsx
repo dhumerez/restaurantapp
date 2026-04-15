@@ -54,12 +54,12 @@ export function RecipeEditor({ menuItemId }: RecipeEditorProps) {
 
   return (
     <div className="space-y-3">
-      <h3 className="text-sm font-semibold text-muted uppercase tracking-wide">Recipe</h3>
+      <h3 className="text-sm font-semibold text-muted uppercase tracking-wide">Receta</h3>
       <table className="w-full text-sm">
         <thead>
           <tr>
-            <th className="text-left text-muted font-medium pb-2 border-b border-border">Ingredient</th>
-            <th className="text-left text-muted font-medium pb-2 border-b border-border">Quantity</th>
+            <th className="text-left text-muted font-medium pb-2 border-b border-border">Ingrediente</th>
+            <th className="text-left text-muted font-medium pb-2 border-b border-border">Cantidad</th>
             <th className="pb-2 border-b border-border" />
           </tr>
         </thead>
@@ -72,7 +72,7 @@ export function RecipeEditor({ menuItemId }: RecipeEditorProps) {
                   onChange={(e) => updateRow(idx, "ingredientId", e.target.value)}
                   className="w-full bg-background border border-border rounded-lg px-2 py-1.5 text-sm"
                 >
-                  <option value="">Select…</option>
+                  <option value="">Seleccionar…</option>
                   {(ingredients as any[]).map((ing: any) => (
                     <option key={ing.id} value={ing.id}>
                       {ing.name} ({ing.unit})
@@ -96,7 +96,7 @@ export function RecipeEditor({ menuItemId }: RecipeEditorProps) {
                   onClick={() => removeRow(idx)}
                   className="border border-destructive text-destructive rounded-lg px-2 py-1 text-xs hover:bg-destructive/10"
                 >
-                  Remove
+                  Quitar
                 </button>
               </td>
             </tr>
@@ -109,14 +109,14 @@ export function RecipeEditor({ menuItemId }: RecipeEditorProps) {
           onClick={addRow}
           className="border border-border text-sm rounded-lg px-3 py-1.5 hover:bg-surface"
         >
-          + Add row
+          + Agregar fila
         </button>
         <button
           onClick={save}
           disabled={upsert.isPending}
           className="bg-accent text-black font-semibold rounded-lg px-4 py-1.5 text-sm hover:bg-accent/80 disabled:opacity-50"
         >
-          {upsert.isPending ? "Saving…" : "Save Recipe"}
+          {upsert.isPending ? "Guardando…" : "Guardar receta"}
         </button>
       </div>
     </div>

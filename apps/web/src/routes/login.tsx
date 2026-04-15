@@ -45,7 +45,7 @@ function LoginPage() {
         <div className="text-center">
           <h1 className="text-2xl font-bold">Tu Restaurante</h1>
           <p className="text-muted mt-1">
-            {mode === "login" ? "Sign in to continue" : "Create your account"}
+            {mode === "login" ? "Inicia sesión para continuar" : "Crea tu cuenta"}
           </p>
         </div>
 
@@ -53,7 +53,7 @@ function LoginPage() {
           {mode === "register" && (
             <input
               className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent"
-              placeholder="Full name"
+              placeholder="Nombre completo"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
@@ -62,7 +62,7 @@ function LoginPage() {
           <input
             type="email"
             className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent"
-            placeholder="Email"
+            placeholder="Correo electrónico"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -70,7 +70,7 @@ function LoginPage() {
           <input
             type="password"
             className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent"
-            placeholder="Password"
+            placeholder="Contraseña"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -85,7 +85,7 @@ function LoginPage() {
             disabled={loading}
             className="w-full bg-accent hover:bg-accent-hover text-black font-semibold py-2 rounded-lg transition-colors disabled:opacity-50"
           >
-            {loading ? "Loading…" : mode === "login" ? "Sign in" : "Create account"}
+            {loading ? "Cargando…" : mode === "login" ? "Iniciar sesión" : "Crear cuenta"}
           </button>
 
           <button
@@ -93,23 +93,23 @@ function LoginPage() {
             onClick={handleGoogle}
             className="w-full bg-surface border border-border py-2 rounded-lg text-sm hover:bg-border transition-colors flex items-center justify-center gap-2"
           >
-            <span>Continue with Google</span>
+            <span>Continuar con Google</span>
           </button>
         </form>
 
         <p className="text-center text-sm text-muted">
-          {mode === "login" ? "Don't have an account? " : "Already have an account? "}
+          {mode === "login" ? "¿No tienes cuenta? " : "¿Ya tienes cuenta? "}
           <button
             onClick={() => setMode(mode === "login" ? "register" : "login")}
             className="text-accent hover:underline"
           >
-            {mode === "login" ? "Sign up" : "Sign in"}
+            {mode === "login" ? "Regístrate" : "Inicia sesión"}
           </button>
         </p>
 
         <p className="text-center">
           <a href="/demo" className="text-sm text-accent hover:underline">
-            Try Demo Mode →
+            Probar modo Demo →
           </a>
         </p>
       </div>

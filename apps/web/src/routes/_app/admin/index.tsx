@@ -16,11 +16,11 @@ function AdminDashboard() {
   );
 
   const stats = [
-    { label: "Menu Items", value: (menuItems as any[]).length, color: "text-accent" },
-    { label: "Staff Members", value: (staff as any[]).length, color: "text-green-400" },
-    { label: "Tables", value: (tables as any[]).length, color: "text-blue-400" },
+    { label: "Productos del menú", value: (menuItems as any[]).length, color: "text-accent" },
+    { label: "Miembros del personal", value: (staff as any[]).length, color: "text-green-400" },
+    { label: "Mesas", value: (tables as any[]).length, color: "text-blue-400" },
     {
-      label: "Low Stock Ingredients",
+      label: "Ingredientes con stock bajo",
       value: lowStock.length,
       color: lowStock.length > 0 ? "text-amber-400" : "text-muted",
     },
@@ -28,7 +28,7 @@ function AdminDashboard() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+      <h1 className="text-2xl font-bold">Panel de administración</h1>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {stats.map((stat) => (
@@ -44,7 +44,7 @@ function AdminDashboard() {
 
       {lowStock.length > 0 && (
         <div className="bg-surface border border-amber-700 rounded-xl p-5">
-          <h2 className="font-semibold text-amber-400 mb-3">Low Stock Alerts</h2>
+          <h2 className="font-semibold text-amber-400 mb-3">Alertas de stock bajo</h2>
           <div className="space-y-2">
             {lowStock.map((i: any) => (
               <div key={i.id} className="flex justify-between text-sm">

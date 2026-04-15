@@ -4,10 +4,10 @@ export const Route = createFileRoute("/pending")({
   component: () => (
     <div className="min-h-screen bg-background flex items-center justify-center">
       <div className="text-center space-y-4 max-w-sm">
-        <h1 className="text-xl font-semibold">Pending Approval</h1>
+        <h1 className="text-xl font-semibold">Aprobación pendiente</h1>
         <p className="text-muted text-sm">
-          Your account is awaiting role assignment by an admin.
-          You'll receive an email when you're approved.
+          Tu cuenta está esperando que un administrador te asigne un rol.
+          Recibirás un correo cuando seas aprobado.
         </p>
       </div>
     </div>

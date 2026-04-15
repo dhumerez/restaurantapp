@@ -63,12 +63,12 @@ function PlatformRestaurantsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Restaurants</h1>
+        <h1 className="text-2xl font-bold">Restaurantes</h1>
         <button
           onClick={() => setShowModal(true)}
           className="bg-accent text-black font-semibold rounded-lg px-4 py-2 text-sm hover:bg-accent/80"
         >
-          + Add Restaurant
+          + Agregar restaurante
         </button>
       </div>
 
@@ -76,11 +76,11 @@ function PlatformRestaurantsPage() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border">
-              <th className="text-left text-muted font-medium px-4 py-3">Name</th>
+              <th className="text-left text-muted font-medium px-4 py-3">Nombre</th>
               <th className="text-left text-muted font-medium px-4 py-3">Slug</th>
-              <th className="text-left text-muted font-medium px-4 py-3">Status</th>
-              <th className="text-left text-muted font-medium px-4 py-3">Currency</th>
-              <th className="text-left text-muted font-medium px-4 py-3">Change Status</th>
+              <th className="text-left text-muted font-medium px-4 py-3">Estado</th>
+              <th className="text-left text-muted font-medium px-4 py-3">Moneda</th>
+              <th className="text-left text-muted font-medium px-4 py-3">Cambiar estado</th>
             </tr>
           </thead>
           <tbody>
@@ -118,10 +118,10 @@ function PlatformRestaurantsPage() {
       {showModal && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
           <div className="bg-surface border border-border rounded-xl p-6 w-full max-w-sm space-y-4">
-            <h2 className="font-semibold text-lg">Add Restaurant</h2>
+            <h2 className="font-semibold text-lg">Agregar restaurante</h2>
             <form onSubmit={handleCreate} className="space-y-3">
               <div>
-                <label className="block text-sm text-muted mb-1">Name</label>
+                <label className="block text-sm text-muted mb-1">Nombre</label>
                 <input
                   required
                   value={form.name}
@@ -140,7 +140,7 @@ function PlatformRestaurantsPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm text-muted mb-1">Address (optional)</label>
+                <label className="block text-sm text-muted mb-1">Dirección (opcional)</label>
                 <input
                   value={form.address}
                   onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
@@ -148,7 +148,7 @@ function PlatformRestaurantsPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm text-muted mb-1">Currency</label>
+                <label className="block text-sm text-muted mb-1">Moneda</label>
                 <input
                   value={form.currency}
                   onChange={(e) => setForm((f) => ({ ...f, currency: e.target.value }))}
@@ -156,7 +156,7 @@ function PlatformRestaurantsPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm text-muted mb-1">Tax Rate (%)</label>
+                <label className="block text-sm text-muted mb-1">Tasa de impuesto (%)</label>
                 <input
                   type="number"
                   min="0"
@@ -172,14 +172,14 @@ function PlatformRestaurantsPage() {
                   onClick={() => setShowModal(false)}
                   className="flex-1 border border-border rounded-lg px-4 py-2 text-sm hover:bg-background"
                 >
-                  Cancel
+                  Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={create.isPending}
                   className="flex-1 bg-accent text-black font-semibold rounded-lg px-4 py-2 text-sm hover:bg-accent/80 disabled:opacity-50"
                 >
-                  {create.isPending ? "Creating…" : "Create"}
+                  {create.isPending ? "Creando…" : "Crear"}
                 </button>
               </div>
             </form>

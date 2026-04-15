@@ -82,7 +82,7 @@ function OrderPage() {
 
   async function handleCancel() {
     if (!id || isNew) { navigate({ to: "/waiter/tables" }); return; }
-    if (!confirm("Cancel this order?")) return;
+    if (!confirm("¿Cancelar este pedido?")) return;
     try {
       await cancelOrder.mutateAsync({ id });
       navigate({ to: "/waiter/tables" });
@@ -96,7 +96,7 @@ function OrderPage() {
       {/* Menu panel */}
       <div className="flex-1 min-w-0 space-y-4">
         <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold">{isNew ? "New Order" : `Order #${id.slice(0, 8)}`}</h1>
+          <h1 className="text-xl font-bold">{isNew ? "Nuevo pedido" : `Pedido #${id.slice(0, 8)}`}</h1>
           {!isNew && order?.status !== "draft" && (
             <span className="text-xs bg-amber-900/30 text-amber-400 px-2 py-1 rounded capitalize">{order?.status}</span>
           )}
@@ -107,7 +107,7 @@ function OrderPage() {
             onClick={() => setSelectedCategory(null)}
             className={`px-3 py-1 rounded-full text-sm ${!selectedCategory ? "bg-accent text-black" : "bg-surface border border-border text-muted"}`}
           >
-            All
+            Todos
           </button>
           {categories.map((c: any) => (
             <button
@@ -140,12 +140,12 @@ function OrderPage() {
       {/* Cart panel */}
       <div className="w-full md:w-72 bg-surface border border-border rounded-xl flex flex-col">
         <div className="p-4 border-b border-border">
-          <h2 className="font-semibold">Cart</h2>
+          <h2 className="font-semibold">Carrito</h2>
         </div>
 
         <div className="flex-1 overflow-y-auto p-3 space-y-2">
           {cartItems.length === 0 ? (
-            <p className="text-muted text-sm text-center py-8">Add items from the menu</p>
+            <p className="text-muted text-sm text-center py-8">Agrega productos desde el menú</p>
           ) : (
             cartItems.map(({ item, qty }) => (
               <div key={item.id} className="flex items-center justify-between gap-2">
@@ -179,7 +179,7 @@ function OrderPage() {
             className="w-full bg-accent hover:bg-accent-hover text-black font-semibold py-2 rounded-lg flex items-center justify-center gap-2 disabled:opacity-50"
           >
             <Send size={16} />
-            {isSending ? "Sending…" : "Send to Kitchen"}
+            {isSending ? "Enviando…" : "Enviar a cocina"}
           </button>
 
           {!isNew && (
@@ -187,7 +187,7 @@ function OrderPage() {
               onClick={handleCancel}
               className="w-full border border-destructive text-destructive hover:bg-destructive/10 py-2 rounded-lg text-sm flex items-center justify-center gap-2"
             >
-              <X size={16} /> Cancel Order
+              <X size={16} /> Cancelar pedido
             </button>
           )}
         </div>
