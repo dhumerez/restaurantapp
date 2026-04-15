@@ -67,10 +67,11 @@ interface Props {
 export function ActivityLog({ orderId }: Props) {
   const [open, setOpen] = useState(false);
 
-  const { data: events = [], isLoading } = useQuery({
+  const { data: events = [], isPending: eventsPending, isFetching: eventsFetching } = useQuery({
     queryKey: ["orderEvents", orderId],
     queryFn: () => ordersApi.getOrderEvents(orderId),
     enabled: open,
+    staleTime: 15_000,
     refetchInterval: open ? 15_000 : false,
   });
 
@@ -96,7 +97,7 @@ export function ActivityLog({ orderId }: Props) {
 
       {open && (
         <div className="mt-3 space-y-0">
-          {isLoading ? (
+          {eventsPending || (eventsFetching && events.length === 0) ? (
             <p className="text-xs text-ink-muted text-center py-4">Cargando...</p>
           ) : events.length === 0 ? (
             <p className="text-xs text-ink-muted text-center py-4">Sin actividad registrada</p>

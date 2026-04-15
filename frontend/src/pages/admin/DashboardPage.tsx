@@ -6,9 +6,10 @@ import { ordenEstado } from "../../utils/labels";
 import { HiOutlineUsers, HiOutlineTable } from "react-icons/hi";
 
 export function DashboardPage() {
-  const { data: orders = [] } = useQuery({
+  const { data: orders = [], isPending: ordersPending, isFetching: ordersFetching } = useQuery({
     queryKey: ["orders"],
     queryFn: () => getOrders(),
+    staleTime: 30000,
   });
 
   const todayOrders = orders.filter((o) => {
@@ -91,7 +92,11 @@ export function DashboardPage() {
           <div className="px-4 md:px-6 py-3 md:py-4 border-b border-surface-border">
             <h3 className="font-display text-base md:text-lg font-semibold text-ink-primary tracking-wide">Pedidos recientes</h3>
           </div>
-          {orders.length === 0 ? (
+          {ordersPending || (ordersFetching && orders.length === 0) ? (
+            <div className="px-6 py-16 text-center">
+              <div className="w-6 h-6 border-2 border-primary-500/30 border-t-primary-500 rounded-full animate-spin mx-auto" />
+            </div>
+          ) : orders.length === 0 ? (
             <div className="px-6 py-16 text-center">
               <svg className="w-12 h-12 text-ink-muted mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />

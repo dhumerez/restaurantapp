@@ -31,6 +31,7 @@ export function KitchenDisplayPage() {
   const { data: orders = [] } = useQuery({
     queryKey: ["kitchen-orders"],
     queryFn: getKitchenOrders,
+    staleTime: 15000,
     refetchInterval: 15000,
   });
 

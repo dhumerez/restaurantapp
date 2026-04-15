@@ -51,11 +51,13 @@ export function OrderPage() {
   const { data: categories = [] } = useQuery({
     queryKey: ["categories"],
     queryFn: menuApi.getCategories,
+    staleTime: Infinity,
   });
 
   const { data: menuItems = [] } = useQuery({
     queryKey: ["menuItems", selectedCategory],
     queryFn: () => menuApi.getMenuItems(selectedCategory ?? undefined),
+    staleTime: Infinity,
   });
 
   const { data: existingOrder } = useQuery({

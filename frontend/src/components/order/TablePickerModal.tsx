@@ -15,6 +15,7 @@ export function TablePickerModal({ isOpen, title, currentTableId, onSelect, onCa
     queryKey: ["tables"],
     queryFn: ordersApi.fetchTables,
     enabled: isOpen,
+    staleTime: Infinity,
   });
 
   if (!isOpen) return null;
