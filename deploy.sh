@@ -70,7 +70,7 @@ cmd_update() {
   $COMPOSE run --rm --no-deps backend node dist/migrate.js 2>/dev/null || true
 
   info "Rolling restart..."
-  $COMPOSE up -d --no-deps backend frontend nginx
+  $COMPOSE up -d --no-deps backend frontend
 
   info "Update complete!"
   $COMPOSE ps
