@@ -7,6 +7,8 @@ import { kitchenRouter } from "./kitchen.js";
 import { reportsRouter } from "./reports.js";
 import { notificationsRouter } from "./notifications.js";
 import { authRouter } from "./auth.js";
+import { inventoryRouter } from "./inventory.js";
+import { superadminRouter } from "./superadmin.js";
 
 export const appRouter = router({
   auth: authRouter,
@@ -17,6 +19,8 @@ export const appRouter = router({
   kitchen: kitchenRouter,
   reports: reportsRouter,
   notifications: notificationsRouter,
+  inventory: inventoryRouter,
+  superadmin: superadminRouter,
 });
 
 export type AppRouter = typeof appRouter;
