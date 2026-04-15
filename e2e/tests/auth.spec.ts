@@ -39,6 +39,15 @@ test.describe("Authentication", () => {
     await expect(page).not.toHaveURL(/\/login/);
   });
 
+  test("waiter /orders index loads from sidebar (no 404)", async ({ page }) => {
+    await page.goto("demo");
+    await page.getByRole("button", { name: /mesero/i }).click();
+    await expect(page).toHaveURL(/\/waiter\/tables/);
+    await page.getByRole("link", { name: /^pedidos$/i }).click();
+    await expect(page).toHaveURL(/\/waiter\/orders$/);
+    await expect(page.getByRole("heading", { name: /pedidos activos/i })).toBeVisible();
+  });
+
   test("logout clears session and redirects to login", async ({ page }) => {
     await login(page, "admin@demo.com", "password123");
     await expect(page).toHaveURL(/\/admin/, { timeout: 10000 });
