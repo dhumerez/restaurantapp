@@ -6,8 +6,10 @@ import { ordersRouter } from "./orders.js";
 import { kitchenRouter } from "./kitchen.js";
 import { reportsRouter } from "./reports.js";
 import { notificationsRouter } from "./notifications.js";
+import { authRouter } from "./auth.js";
 
 export const appRouter = router({
+  auth: authRouter,
   menu: menuRouter,
   tables: tablesRouter,
   staff: staffRouter,
