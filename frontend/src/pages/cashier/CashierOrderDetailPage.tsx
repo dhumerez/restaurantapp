@@ -40,10 +40,11 @@ export function CashierOrderDetailPage() {
   const [showTransfer, setShowTransfer] = useState(false);
   const [showMergeConfirm, setShowMergeConfirm] = useState<{ sourceId: string; targetId: string; targetTable: number } | null>(null);
 
-  const { data: order, isLoading } = useQuery({
+  const { data: order, isPending: orderPending, isFetching: orderFetching } = useQuery({
     queryKey: ["order", id],
     queryFn: () => ordersApi.getOrder(id!),
     enabled: !!id,
+    staleTime: 30000,
   });
 
   useEffect(() => {
@@ -117,13 +118,14 @@ export function CashierOrderDetailPage() {
     queryKey: ["orders", { table: order?.tableId, active: true }],
     queryFn: () => ordersApi.getOrders("placed,preparing,ready", order!.tableId),
     enabled: !!order && ["placed", "preparing", "ready"].includes(order.status),
+    staleTime: 30000,
   });
 
   const mergeableOrders = tableOrders.filter(
     (o) => o.id !== id && ["placed", "preparing", "ready"].includes(o.status)
   );
 
-  if (isLoading) {
+  if (orderPending || (orderFetching && !order)) {
     return (
       <div className="flex-1 bg-surface-0">
         <Header title="Detalle del pedido" />
