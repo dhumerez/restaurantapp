@@ -13,7 +13,8 @@ COPY --from=builder /app/out/pnpm-lock.yaml ./pnpm-lock.yaml
 RUN pnpm install --frozen-lockfile
 
 FROM installer AS runner
+WORKDIR /app
 COPY --from=builder /app/out/full/ .
-RUN pnpm --filter=@restaurant/server build
+RUN pnpm turbo build --filter=@restaurant/server
 EXPOSE 3000
 CMD ["node", "apps/server/dist/index.js"]
