@@ -36,6 +36,10 @@ services:
     environment:
       DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-devpassword}@postgres:5432/restaurant
       REDIS_URL: redis://redis:6379
+      # Docker bind mounts on Windows/WSL2 don't deliver inotify events, so
+      # chokidar (used by tsx watch) silently misses edits. Force polling.
+      CHOKIDAR_USEPOLLING: "true"
+      CHOKIDAR_INTERVAL: "500"
     ports:
       - "3000:3000"
     volumes:
@@ -48,11 +52,16 @@ services:
       dockerfile: apps/web/Dockerfile.dev
     env_file: .env
     environment:
-      VITE_API_URL: http://server:3000
+      API_PROXY_TARGET: http://server:3000
+      # Force chokidar polling so Vite HMR + TanStack Router file plugin
+      # pick up host edits through the Windows/WSL2 bind mount.
+      CHOKIDAR_USEPOLLING: "true"
+      CHOKIDAR_INTERVAL: "500"
     ports:
       - "5173:5173"
     volumes:
-      - ./apps/web/src:/app/apps/web/src
+      - ./apps/web:/app/apps/web
+      - /app/apps/web/node_modules
 
 volumes:
   postgres_data:
