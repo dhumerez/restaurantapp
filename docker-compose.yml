@@ -40,7 +40,7 @@ services:
       - "3000:3000"
     volumes:
       - ./apps/server/src:/app/apps/server/src
-      - ./packages:/app/packages
+      - ./packages/db/src:/app/packages/db/src
 
   web:
     build:
