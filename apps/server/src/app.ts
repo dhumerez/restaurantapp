@@ -8,6 +8,7 @@ import {
   fastifyTRPCPlugin,
   type FastifyTRPCPluginOptions,
 } from "@trpc/server/adapters/fastify";
+import { fromNodeHeaders } from "better-auth/node";
 import { appRouter, type AppRouter } from "./router/index.js";
 import { createContext } from "./trpc/context.js";
 import { auth } from "./lib/auth.js";
@@ -25,9 +26,21 @@ export async function buildApp() {
   await app.register(multipart, { limits: { fileSize: 5 * 1024 * 1024 } });
   await app.register(websocket);
 
-  // Better Auth — all /api/auth/* routes
+  // Better Auth — all /api/auth/* routes.
+  // Must construct a Fetch API Request with a full URL; req.raw.url is path-only.
   app.all("/api/auth/*", async (req, reply) => {
-    return auth.handler(req.raw, reply.raw);
+    const url = new URL(req.url, `http://${req.headers.host}`);
+    const fetchReq = new Request(url.toString(), {
+      method: req.method,
+      headers: fromNodeHeaders(req.headers),
+      body: ["GET", "HEAD"].includes(req.method) || req.body == null
+        ? undefined
+        : JSON.stringify(req.body),
+    });
+    const response = await auth.handler(fetchReq);
+    reply.status(response.status);
+    response.headers.forEach((value, key) => reply.header(key, value));
+    return response.body ? await response.text() : null;
   });
 
   // tRPC

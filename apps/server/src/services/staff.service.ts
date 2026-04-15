@@ -2,6 +2,7 @@ import { eq, and } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import type { Db } from "@restaurant/db";
 import { user } from "@restaurant/db";
+import { auth } from "../lib/auth.js";
 
 export async function createStaff(
   db: Db,
@@ -18,21 +19,32 @@ export async function createStaff(
   });
   if (existing) throw new TRPCError({ code: "CONFLICT", message: "Email already in use" });
 
-  const now = new Date();
-  const [created] = await db.insert(user).values({
-    id: crypto.randomUUID(),
-    name: input.name,
-    email: input.email,
-    emailVerified: true, // ALWAYS true — staff don't go through email verification
-    role: input.role,
-    restaurantId,
-    isActive: true,
-    createdAt: now,
-    updatedAt: now,
-  }).returning();
+  // Better Auth creates both the user row and the hashed-password account row.
+  try {
+    await auth.api.signUpEmail({
+      body: { email: input.email, password: input.password, name: input.name },
+    });
+  } catch (err: any) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: err?.message ?? "Failed to create staff account",
+    });
+  }
 
-  // NOTE: password hash must be stored via Better Auth's account table
-  return created;
+  // Patch the restaurant-specific fields that Better Auth's signUp doesn't know about.
+  const [patched] = await db
+    .update(user)
+    .set({
+      role: input.role,
+      restaurantId,
+      emailVerified: true,
+      isActive: true,
+      updatedAt: new Date(),
+    })
+    .where(eq(user.email, input.email))
+    .returning();
+
+  return patched;
 }
 
 export async function updateStaff(
