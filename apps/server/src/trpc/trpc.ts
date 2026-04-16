@@ -1,4 +1,6 @@
 import { initTRPC, TRPCError } from "@trpc/server";
+import { eq } from "drizzle-orm";
+import { restaurants } from "@restaurant/db";
 import type { Context } from "./context.js";
 
 const t = initTRPC.context<Context>().create();
@@ -20,18 +22,27 @@ export const superadminProcedure = protectedProcedure.use(({ ctx, next }) => {
   return next({ ctx });
 });
 
-export const restaurantProcedure = protectedProcedure.use(({ ctx, next }) => {
+const ALLOWED_RESTAURANT_STATUSES = new Set(["active", "trial", "demo"]);
+
+export const restaurantProcedure = protectedProcedure.use(async ({ ctx, next }) => {
   if (!ctx.user.restaurantId || !ctx.user.role) {
     throw new TRPCError({ code: "FORBIDDEN", message: "No restaurant assigned" });
   }
   if (!ctx.user.isActive) {
     throw new TRPCError({ code: "FORBIDDEN", message: "Account deactivated" });
   }
+  const r = await ctx.db.query.restaurants.findFirst({
+    where: eq(restaurants.id, ctx.user.restaurantId),
+  });
+  if (!r || !ALLOWED_RESTAURANT_STATUSES.has(r.status)) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "RESTAURANT_INACTIVE" });
+  }
   return next({
     ctx: {
       ...ctx,
       restaurantId: ctx.user.restaurantId,
       role: ctx.user.role,
+      restaurant: r,
     },
   });
 });
