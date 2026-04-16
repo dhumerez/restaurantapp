@@ -5,7 +5,8 @@ const STORAGE_DIR = path.join(__dirname, "..", "test-results", "storage");
 const KITCHEN_STORAGE = path.join(STORAGE_DIR, "kitchen.json");
 const WAITER_STORAGE = path.join(STORAGE_DIR, "waiter.json");
 
-const API = "http://localhost:3000/api/trpc";
+const BASE = (process.env.BASE_URL || "http://localhost:5173").replace(/\/?$/, "");
+const API = `${BASE}/api/trpc`;
 
 // Placing an order through tRPC-over-HTTP from the waiter browser context.
 // Using `page.request` inherits the session cookie stored in waiter.json.
@@ -62,8 +63,9 @@ async function placeOrderViaApi(
 
 test.describe("Realtime multi-browser", () => {
   test("waiter placing an order surfaces in the kitchen browser without a refresh", async ({ browser }) => {
-    const kitchenContext = await browser.newContext({ storageState: KITCHEN_STORAGE });
-    const waiterContext = await browser.newContext({ storageState: WAITER_STORAGE });
+    const baseURL = `${BASE}/`;
+    const kitchenContext = await browser.newContext({ storageState: KITCHEN_STORAGE, baseURL });
+    const waiterContext = await browser.newContext({ storageState: WAITER_STORAGE, baseURL });
 
     const kitchenPage: Page = await kitchenContext.newPage();
     const waiterPage: Page = await waiterContext.newPage();

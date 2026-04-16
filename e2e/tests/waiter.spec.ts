@@ -4,7 +4,7 @@ import { test, expect } from "@playwright/test";
 
 test.describe("Waiter Flow", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/waiter/tables");
+    await page.goto("waiter/tables");
     await expect(page).toHaveURL(/\/waiter\/tables/, { timeout: 10000 });
   });
 

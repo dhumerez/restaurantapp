@@ -25,12 +25,6 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"] },
     },
     {
-      name: "auth",
-      testMatch: /auth\.spec\.ts/,
-      use: { ...devices["Desktop Chrome"] },
-      // Auth tests handle their own login (testing the login flow itself)
-    },
-    {
       name: "admin",
       testMatch: /admin\.spec\.ts/,
       dependencies: ["setup"],
@@ -70,6 +64,14 @@ export default defineConfig({
       name: "pwa",
       testMatch: /pwa\.spec\.ts/,
       use: { ...devices["Desktop Chrome"] },
+    },
+    {
+      name: "auth",
+      testMatch: /auth\.spec\.ts/,
+      dependencies: ["admin", "waiter", "kitchen", "cashier"],
+      use: { ...devices["Desktop Chrome"] },
+      // Auth tests handle their own login — runs after stored-session projects
+      // because the logout test invalidates the admin server-side session.
     },
     {
       name: "realtime",

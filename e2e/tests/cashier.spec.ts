@@ -2,13 +2,13 @@ import { test, expect } from "@playwright/test";
 
 test.describe("Cashier flow", () => {
   test("can view cashier tables page", async ({ page }) => {
-    await page.goto("/cashier/tables");
-    await expect(page.getByRole("heading", { name: "Tables" })).toBeVisible();
+    await page.goto("cashier/tables");
+    await expect(page.getByRole("heading", { name: /mesas/i })).toBeVisible();
   });
 
   test("can view order detail with occupied table", async ({ page }) => {
-    await page.goto("/cashier/tables");
-    // Find a table with an active order (amber or green bg)
+    await page.goto("cashier/tables");
+    // Find a table with an active order (has a price displayed)
     const occupiedTable = page
       .locator("button")
       .filter({ has: page.locator(".text-accent") }) // has price
@@ -17,26 +17,26 @@ test.describe("Cashier flow", () => {
     if (await occupiedTable.isVisible()) {
       await occupiedTable.click();
       await page.waitForURL(/\/cashier\/orders\//);
-      await expect(page.getByRole("heading", { name: "Order Detail" })).toBeVisible();
-      await expect(page.getByRole("button", { name: /mark served/i })).toBeVisible();
+      await expect(page.getByRole("heading", { name: /detalle del pedido/i })).toBeVisible();
+      await expect(page.getByText(/marcar como servido/i)).toBeVisible();
     }
   });
 
   test("can apply discount to order", async ({ page }) => {
-    await page.goto("/cashier/tables");
+    await page.goto("cashier/tables");
     const occupiedTable = page.locator("button").filter({ has: page.locator(".text-accent") }).first();
 
     if (await occupiedTable.isVisible()) {
       await occupiedTable.click();
       await page.waitForURL(/\/cashier\/orders\//);
 
-      await page.getByRole("button", { name: /discount/i }).click();
+      await page.getByText(/descuento/i).first().click();
       // Modal appears
-      await expect(page.getByRole("heading", { name: "Apply Discount" })).toBeVisible();
-      await page.getByPlaceholder(/e.g. 10/).fill("10");
-      await page.getByRole("button", { name: "Apply" }).click();
+      await expect(page.getByRole("heading", { name: /aplicar descuento/i })).toBeVisible();
+      await page.getByPlaceholder(/ej\. 10/).fill("10");
+      await page.getByRole("button", { name: /aplicar/i }).click();
       // Modal closes
-      await expect(page.getByRole("heading", { name: "Apply Discount" })).not.toBeVisible();
+      await expect(page.getByRole("heading", { name: /aplicar descuento/i })).not.toBeVisible();
     }
   });
 });
