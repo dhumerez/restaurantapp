@@ -36,7 +36,6 @@ setup("login as kitchen", async ({ page }) => {
 });
 
 setup("login as cashier", async ({ page }) => {
-  await page.waitForTimeout(5000);
   await page.goto("login");
   await page.getByPlaceholder(/correo electrónico/i).fill("cashier@demo.com");
   await page.getByPlaceholder(/contraseña/i).fill("password123");

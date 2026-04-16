@@ -37,6 +37,14 @@ export const auth = betterAuth({
   session: {
     cookieCache: { enabled: true, maxAge: 60 * 5 },
   },
+  rateLimit: {
+    window: 60,
+    max: 100,
+    customRules: {
+      "/sign-in/email": { window: 60, max: 10 },
+      "/sign-up/email": { window: 60, max: 5 },
+    },
+  },
   trustedOrigins: [env.CORS_ORIGIN],
 });
 
