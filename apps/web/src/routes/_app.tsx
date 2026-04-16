@@ -17,9 +17,14 @@ function AppLayout() {
 
 export const Route = createFileRoute("/_app")({
   beforeLoad: async () => {
-    const session = await authClient.getSession();
-    if (!session?.data?.user) throw redirect({ to: "/login" });
-    const role = (session.data.user as any).role;
+    const res = await fetch(
+      `${import.meta.env.VITE_API_URL}/api/auth/get-session`,
+      { credentials: "include" },
+    );
+    if (!res.ok) throw redirect({ to: "/login" });
+    const session = await res.json();
+    if (!session?.user) throw redirect({ to: "/login" });
+    const role = session.user.role;
     if (!role) throw redirect({ to: "/pending" });
   },
   component: AppLayout,
