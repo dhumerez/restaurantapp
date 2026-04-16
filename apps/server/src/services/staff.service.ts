@@ -51,7 +51,7 @@ export async function updateStaff(
   db: Db,
   restaurantId: string,
   userId: string,
-  input: Partial<{ name: string; role: string; isActive: boolean }>
+  input: Partial<{ name: string; role: "admin" | "waiter" | "kitchen" | "cashier"; isActive: boolean }>
 ): Promise<typeof user.$inferSelect> {
   const [updated] = await db
     .update(user)

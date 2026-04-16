@@ -1,14 +1,14 @@
-import { drizzle } from "drizzle-orm/node-postgres";
+import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import * as schema from "./schema.js";
 
-let _db: ReturnType<typeof drizzle> | null = null;
+export type Db = NodePgDatabase<typeof schema>;
 
-export function getDb(connectionString: string) {
+let _db: Db | null = null;
+
+export function getDb(connectionString: string): Db {
   if (_db) return _db;
   const pool = new Pool({ connectionString });
   _db = drizzle(pool, { schema });
   return _db;
 }
-
-export type Db = ReturnType<typeof getDb>;

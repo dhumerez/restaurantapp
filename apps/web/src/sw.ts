@@ -3,11 +3,10 @@ import { registerRoute } from "workbox-routing";
 import { CacheFirst, NetworkFirst, StaleWhileRevalidate } from "workbox-strategies";
 import { ExpirationPlugin } from "workbox-expiration";
 
-declare const self: ServiceWorkerGlobalScope;
-declare const __WB_MANIFEST: any[];
+declare const self: ServiceWorkerGlobalScope & { __WB_MANIFEST: any[] };
 
 cleanupOutdatedCaches();
-precacheAndRoute(__WB_MANIFEST);
+precacheAndRoute(self.__WB_MANIFEST);
 
 // tRPC API calls — NetworkFirst (fresh data when online, cached when offline)
 registerRoute(
