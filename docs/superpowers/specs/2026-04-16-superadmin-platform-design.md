@@ -19,7 +19,7 @@ This design closes those three gaps. Out of scope: impersonation ("login as any 
 ## Decisions
 
 - **Login model:** Superadmin uses the normal `/login` page. No separate entry point, no impersonation.
-- **Lockout model:** Any restaurant whose status is not `active` or `trial` blocks all of its users (admin, waiter, kitchen, cashier) from the app. They land on `/restaurant-inactive` with a configurable contact block.
+- **Lockout model:** Any restaurant whose status is not `active`, `trial`, or `demo` blocks all of its users (admin, waiter, kitchen, cashier) from the app. They land on `/restaurant-inactive` with a configurable contact block. The `demo` status is treated as allowed so seeded demo data and e2e tests continue to work.
 - **Contact info:** Stored in a singleton `platform_settings` row. Editable from `/platform/settings`.
 - **First superadmin:** Seeded in `apps/server/src/scripts/seed.ts` as `superadmin@demo.com` / `password123`.
 
@@ -80,13 +80,14 @@ Counts use `count()` aggregates. Staff is a plain `select` filtered by `restaura
 `restaurantProcedure` (in `apps/server/src/trpc/trpc.ts`) gains a status check after the existing `isActive` guard:
 
 ```ts
+const ALLOWED = new Set(["active", "trial", "demo"]);
 const r = await ctx.db.query.restaurants.findFirst({ where: eq(restaurants.id, ctx.user.restaurantId) });
-if (!r || (r.status !== "active" && r.status !== "trial")) {
+if (!r || !ALLOWED.has(r.status)) {
   throw new TRPCError({ code: "FORBIDDEN", message: "RESTAURANT_INACTIVE" });
 }
 ```
 
-The sentinel message `RESTAURANT_INACTIVE` is how the client differentiates lockout from ordinary FORBIDDEN.
+The sentinel message `RESTAURANT_INACTIVE` is how the client differentiates lockout from ordinary FORBIDDEN. `demo` is in the allow-list because seeded demo restaurants and the e2e suite rely on that status.
 
 ### Frontend routes
 
@@ -107,7 +108,7 @@ The detail page is read-only for restaurant fields. The only mutation from the p
 1. No session → redirect `/login` (unchanged).
 2. `role === null` → redirect `/pending` (unchanged).
 3. `role === "superadmin"` → proceed.
-4. Fetch `me.context`. If `restaurantStatus` is not `active` or `trial` → redirect `/restaurant-inactive`.
+4. Fetch `me.context`. If `restaurantStatus` is not `active`, `trial`, or `demo` → redirect `/restaurant-inactive`.
 5. Else proceed.
 
 `/restaurant-inactive` is a top-level route (sibling of `/login`, not under `_app`). It calls `platform.publicContact` on mount and renders:
@@ -143,7 +144,7 @@ await db
 
 The seed also upserts the `platform_settings` singleton row.
 
-**Pre-existing bug surfaced by this change:** the seed inserts the demo restaurant with `status: "demo"`, which is not a member of the enum. The new `restaurantProcedure` guard will reject all demo-restaurant traffic. Fix in the same PR by changing seed status to `"active"`.
+The seeded demo restaurant keeps `status: "demo"`. Because `demo` is in the lockout allow-list, all existing e2e tests continue to work without changes.
 
 ## Restaurant detail page layout
 
@@ -180,18 +181,19 @@ Restaurant fields are read-only. Editing name / slug / address / currency / taxR
 
 ## Testing
 
-### Backend (existing tRPC test harness)
+### Backend
 
-- `superadmin.restaurants.get` — returns correct stats + staff, 404 on bad id, FORBIDDEN for non-superadmin.
-- `superadmin.settings.get` / `update` — reads default singleton, updates, rejects non-superadmin.
-- `me.context` — returns `restaurantStatus` for restaurant users, `null` for superadmin.
-- `restaurantProcedure` guard — throws `RESTAURANT_INACTIVE` for `inactive` / `suspended`; allows `active` / `trial`.
+The existing harness (`apps/server/src/trpc/trpc.test.ts`) is isolated — it re-implements middleware against a mock `ctx.db`. New tests follow the same pattern:
+
+- `restaurantProcedure` guard — mock `db.query.restaurants.findFirst` to return each of `active` / `trial` / `demo` / `suspended` / `inactive` / `undefined`; assert allow vs. `RESTAURANT_INACTIVE`.
+- `me.context` — isolated unit tests with mocked db; assert `restaurantStatus` pass-through for restaurant users, `null` for superadmin and when restaurant row is missing.
+- `superadmin.restaurants.get`, `superadmin.settings.get/update`, `platform.publicContact` — same isolated-harness pattern with mocked db returning canned shapes.
 
 ### E2E (existing Playwright suite)
 
 - **Lockout flow:** admin logs in → superadmin flips the restaurant to `inactive` → admin's next navigation lands on `/restaurant-inactive` showing configured contact info.
 - **Superadmin nav:** superadmin login shows Restaurants / Pending / Settings in sidebar; each route loads.
-- **Existing suites must continue to pass** after the seed status fix.
+- **Existing suites must continue to pass** (demo restaurant still has `demo` status, which is in the allow-list).
 
 ## YAGNI / explicit non-goals
 
