@@ -71,10 +71,10 @@ function AdminMenuPage() {
       {
         name: addItemForm.name,
         description: addItemForm.description || undefined,
-        price: Number(addItemForm.price) as any,
+        price: Number(addItemForm.price).toFixed(2),
         categoryId: addItemForm.categoryId,
         stock: parseStock(addItemForm.stock),
-      } as any,
+      },
       {
         onSuccess: () => {
           setShowAddItem(false);
@@ -100,10 +100,10 @@ function AdminMenuPage() {
       {
         id: editItem.id,
         name: editForm.name,
-        price: Number(editForm.price) as any,
+        price: Number(editForm.price).toFixed(2),
         isAvailable: editForm.isAvailable,
         stock: parseStock(editForm.stock),
-      } as any,
+      },
       { onSuccess: () => setEditItem(null) }
     );
   };
