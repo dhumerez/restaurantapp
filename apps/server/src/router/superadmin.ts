@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { eq, isNull } from "drizzle-orm";
 import { router, superadminProcedure } from "../trpc/trpc.js";
-import { restaurants, user } from "@restaurant/db";
+import { restaurants, user, platformSettings } from "@restaurant/db";
 import { TRPCError } from "@trpc/server";
 
 export const superadminRouter = router({
@@ -33,6 +33,30 @@ export const superadminRouter = router({
       .mutation(async ({ ctx, input }) => {
         await ctx.db.update(user).set({ role: input.role, restaurantId: input.restaurantId, isActive: true, emailVerified: true, updatedAt: new Date() }).where(eq(user.id, input.userId));
         return { success: true };
+      }),
+  }),
+  settings: router({
+    get: superadminProcedure.query(async ({ ctx }) => {
+      const row = await ctx.db.query.platformSettings.findFirst();
+      return {
+        contactEmail: row?.contactEmail ?? "",
+        contactPhone: row?.contactPhone ?? "",
+      };
+    }),
+    update: superadminProcedure
+      .input(z.object({
+        contactEmail: z.string().email().or(z.literal("")),
+        contactPhone: z.string().max(50),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        await ctx.db
+          .insert(platformSettings)
+          .values({ id: "singleton", ...input, updatedAt: new Date() })
+          .onConflictDoUpdate({
+            target: platformSettings.id,
+            set: { ...input, updatedAt: new Date() },
+          });
+        return input;
       }),
   }),
 });
