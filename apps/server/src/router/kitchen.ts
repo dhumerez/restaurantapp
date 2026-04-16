@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { eq, and, sql } from "drizzle-orm";
 import { router, kitchenProcedure } from "../trpc/trpc.js";
-import { orders, orderItems, orderEvents, recipeItems, ingredients, inventoryTransactions } from "@restaurant/db";
+import { orders, orderItems, orderEvents, recipeItems, ingredients, inventoryTransactions, tables, user } from "@restaurant/db";
 import { emitter } from "../lib/emitter.js";
 import { TRPCError } from "@trpc/server";
 import { sendPushNotification } from "./push.js";
@@ -58,10 +58,20 @@ async function syncOrderStatus(
   const [updatedOrder] = await db.select().from(orders).where(eq(orders.id, orderId));
   const allItems = await db.select().from(orderItems).where(eq(orderItems.orderId, orderId));
 
+  const [tableRow] = updatedOrder.tableId
+    ? await db.select().from(tables).where(eq(tables.id, updatedOrder.tableId))
+    : [null];
+  const [waiterRow] = await db.select().from(user).where(eq(user.id, updatedOrder.waiterId));
+
   if (newStatus === "ready") {
     emitter.emitOrderChange(restaurantId, {
       event: "ready",
-      order: { ...updatedOrder, items: allItems } as any,
+      order: {
+        ...updatedOrder,
+        items: allItems,
+        tableNumber: tableRow?.number ?? null,
+        waiterName: waiterRow?.name ?? null,
+      } as any,
     });
     await sendPushNotification(db, order.waiterId, {
       title: "Order Ready",
@@ -80,8 +90,18 @@ export const kitchenRouter = router({
   activeOrders: router({
     list: kitchenProcedure.query(async ({ ctx }) => {
       const activeOrders = await ctx.db
-        .select()
+        .select({
+          id: orders.id,
+          status: orders.status,
+          tableId: orders.tableId,
+          waiterId: orders.waiterId,
+          createdAt: orders.createdAt,
+          tableNumber: tables.number,
+          waiterName: user.name,
+        })
         .from(orders)
+        .leftJoin(tables, eq(tables.id, orders.tableId))
+        .leftJoin(user, eq(user.id, orders.waiterId))
         .where(
           and(
             eq(orders.restaurantId, ctx.restaurantId),

@@ -10,6 +10,8 @@ import {
   ingredients,
   inventoryTransactions,
   restaurants,
+  tables,
+  user,
 } from "@restaurant/db";
 import { emitter } from "../lib/emitter.js";
 import { TRPCError } from "@trpc/server";
@@ -362,8 +364,17 @@ export const ordersRouter = router({
         action: "placed",
       });
 
-      // Notify kitchen and all restaurant staff
-      const fullOrder = { ...updated, items };
+      const [tableRow] = updated.tableId
+        ? await ctx.db.select().from(tables).where(eq(tables.id, updated.tableId))
+        : [null];
+      const [waiterRow] = await ctx.db.select().from(user).where(eq(user.id, updated.waiterId));
+
+      const fullOrder = {
+        ...updated,
+        items,
+        tableNumber: tableRow?.number ?? null,
+        waiterName: waiterRow?.name ?? null,
+      };
       emitter.emitOrderChange(ctx.restaurantId, {
         event: "placed",
         order: fullOrder as any,

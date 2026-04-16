@@ -55,7 +55,12 @@ function KitchenPage() {
                 order.status === "placed" ? "bg-amber-900/30 border-b border-amber-700" : "bg-blue-900/30 border-b border-blue-700"
               }`}>
                 <div>
-                  <span className="font-bold">Mesa {order.tableId ? `#${order.tableId.slice(0, 4)}` : "—"}</span>
+                  <span className="font-bold">
+                    Mesa {order.tableNumber ?? (order.tableId ? `#${order.tableId.slice(0, 4)}` : "—")}
+                  </span>
+                  {order.waiterName && (
+                    <span className="text-xs text-muted ml-2">· {order.waiterName}</span>
+                  )}
                   <span className="text-xs text-muted ml-2">
                     {new Date(order.createdAt).toLocaleTimeString()}
                   </span>

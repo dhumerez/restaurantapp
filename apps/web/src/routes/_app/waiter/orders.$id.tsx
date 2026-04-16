@@ -204,7 +204,7 @@ function OrderPage() {
             <span>${cartTotal.toFixed(2)}</span>
           </div>
 
-          {!isNew && order?.status === "ready" ? (
+          {!isNew && order?.status === "ready" && (
             <button
               onClick={handleMarkServed}
               disabled={serveOrder.isPending}
@@ -213,18 +213,18 @@ function OrderPage() {
               <Check size={16} />
               {serveOrder.isPending ? "Marcando…" : "Marcar como servido"}
             </button>
-          ) : (
-            <button
-              onClick={handleSendToKitchen}
-              disabled={cart.size === 0 || isSending}
-              className="w-full bg-accent hover:bg-accent-hover text-black font-semibold py-2 rounded-lg flex items-center justify-center gap-2 disabled:opacity-50"
-            >
-              <Send size={16} />
-              {isSending ? "Enviando…" : "Enviar a cocina"}
-            </button>
           )}
 
-          {!isNew && order?.status !== "ready" && (
+          <button
+            onClick={handleSendToKitchen}
+            disabled={cart.size === 0 || isSending}
+            className="w-full bg-accent hover:bg-accent-hover text-black font-semibold py-2 rounded-lg flex items-center justify-center gap-2 disabled:opacity-50"
+          >
+            <Send size={16} />
+            {isSending ? "Enviando…" : "Enviar a cocina"}
+          </button>
+
+          {!isNew && (
             <button
               onClick={handleCancel}
               className="w-full border border-destructive text-destructive hover:bg-destructive/10 py-2 rounded-lg text-sm flex items-center justify-center gap-2"
