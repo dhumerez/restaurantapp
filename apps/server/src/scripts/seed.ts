@@ -43,7 +43,24 @@ async function createStaffAccount(
   return patched.id;
 }
 
+async function createSuperadminAccount(email: string, name: string): Promise<string> {
+  const existing = await db.query.user.findFirst({ where: eq(user.email, email) });
+  if (existing) return existing.id;
+
+  await auth.api.signUpEmail({ body: { email, password: PASSWORD, name } });
+
+  const [patched] = await db
+    .update(user)
+    .set({ role: "superadmin", restaurantId: null, emailVerified: true, isActive: true, updatedAt: new Date() })
+    .where(eq(user.email, email))
+    .returning();
+
+  return patched.id;
+}
+
 async function main() {
+  await createSuperadminAccount("superadmin@demo.com", "Platform Admin");
+
   const existingRestaurant = await db.query.restaurants.findFirst({
     where: eq(restaurants.slug, "demo"),
   });
