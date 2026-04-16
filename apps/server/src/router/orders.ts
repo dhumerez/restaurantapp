@@ -376,9 +376,14 @@ export const ordersRouter = router({
       return updated;
     }),
 
-  serve: cashierProcedure
+  serve: restaurantProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
+      const role = ctx.user!.role;
+      if (role === "kitchen") {
+        throw new TRPCError({ code: "FORBIDDEN" });
+      }
+
       const [order] = await ctx.db
         .select()
         .from(orders)
@@ -387,6 +392,9 @@ export const ordersRouter = router({
         );
 
       if (!order) throw new TRPCError({ code: "NOT_FOUND" });
+      if (role === "waiter" && order.waiterId !== ctx.user!.id) {
+        throw new TRPCError({ code: "FORBIDDEN" });
+      }
       if (order.status !== "ready") {
         throw new TRPCError({ code: "BAD_REQUEST", message: "Order is not ready" });
       }

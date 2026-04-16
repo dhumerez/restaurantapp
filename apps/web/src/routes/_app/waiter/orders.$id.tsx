@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { trpc } from "../../../trpc.js";
-import { Plus, Minus, Trash2, Send, X } from "lucide-react";
+import { Plus, Minus, Trash2, Send, X, Check } from "lucide-react";
 
 export const Route = createFileRoute("/_app/waiter/orders/$id")({
   component: OrderPage,
@@ -25,10 +25,12 @@ function OrderPage() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isSending, setIsSending] = useState(false);
 
+  const utils = trpc.useUtils();
   const createOrder = trpc.orders.create.useMutation();
   const updateOrder = trpc.orders.update.useMutation();
   const placeOrder = trpc.orders.place.useMutation();
   const cancelOrder = trpc.orders.cancel.useMutation();
+  const serveOrder = trpc.orders.serve.useMutation();
 
   const filteredItems = selectedCategory
     ? menuItemsData.filter((i: any) => i.categoryId === selectedCategory && i.isAvailable)
@@ -81,6 +83,18 @@ function OrderPage() {
       alert(e.message);
     } finally {
       setIsSending(false);
+    }
+  }
+
+  async function handleMarkServed() {
+    if (!id || isNew) return;
+    try {
+      await serveOrder.mutateAsync({ id });
+      await utils.orders.invalidate();
+      await utils.tables.invalidate();
+      navigate({ to: "/waiter/tables" });
+    } catch (e: any) {
+      alert(e.message);
     }
   }
 
@@ -190,16 +204,27 @@ function OrderPage() {
             <span>${cartTotal.toFixed(2)}</span>
           </div>
 
-          <button
-            onClick={handleSendToKitchen}
-            disabled={cart.size === 0 || isSending}
-            className="w-full bg-accent hover:bg-accent-hover text-black font-semibold py-2 rounded-lg flex items-center justify-center gap-2 disabled:opacity-50"
-          >
-            <Send size={16} />
-            {isSending ? "Enviando…" : "Enviar a cocina"}
-          </button>
+          {!isNew && order?.status === "ready" ? (
+            <button
+              onClick={handleMarkServed}
+              disabled={serveOrder.isPending}
+              className="w-full bg-green-600 hover:bg-green-500 text-white font-semibold py-2 rounded-lg flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              <Check size={16} />
+              {serveOrder.isPending ? "Marcando…" : "Marcar como servido"}
+            </button>
+          ) : (
+            <button
+              onClick={handleSendToKitchen}
+              disabled={cart.size === 0 || isSending}
+              className="w-full bg-accent hover:bg-accent-hover text-black font-semibold py-2 rounded-lg flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              <Send size={16} />
+              {isSending ? "Enviando…" : "Enviar a cocina"}
+            </button>
+          )}
 
-          {!isNew && (
+          {!isNew && order?.status !== "ready" && (
             <button
               onClick={handleCancel}
               className="w-full border border-destructive text-destructive hover:bg-destructive/10 py-2 rounded-lg text-sm flex items-center justify-center gap-2"

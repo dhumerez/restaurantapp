@@ -1,6 +1,6 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { Bell, ChefHat, ClipboardList, LayoutDashboard, LogOut, Menu, ShoppingBag, Users, UtensilsCrossed, Warehouse } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { authClient } from "../auth.js";
 import { useNotificationStore } from "../store/notificationStore.js";
 
@@ -48,9 +48,37 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { data: session } = authClient.useSession();
   const role = (session?.user as any)?.role ?? "";
   const unread = useNotificationStore((s) => s.unreadCount);
+  const notifications = useNotificationStore((s) => s.notifications);
+  const markAllRead = useNotificationStore((s) => s.markAllRead);
+  const clearNotifications = useNotificationStore((s) => s.clear);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const notifRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
   const routerState = useRouterState();
   const currentPath = routerState.location.pathname;
+
+  useEffect(() => {
+    if (!notifOpen) return;
+    function onClick(e: MouseEvent) {
+      if (!notifRef.current?.contains(e.target as Node)) setNotifOpen(false);
+    }
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, [notifOpen]);
+
+  function handleBellClick() {
+    setNotifOpen((o) => {
+      const next = !o;
+      if (next && unread > 0) markAllRead();
+      return next;
+    });
+  }
+
+  function handleNotificationClick(url: string | undefined) {
+    setNotifOpen(false);
+    if (url) navigate({ to: url });
+  }
 
   const roleNavItems = navItems.filter((n) => n.roles.includes(role));
 
@@ -106,14 +134,52 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <Menu size={20} />
           </button>
           <div className="flex-1" />
-          <button className="relative p-2 text-muted hover:text-white">
-            <Bell size={20} />
-            {unread > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 bg-destructive text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                {unread > 9 ? "9+" : unread}
-              </span>
+          <div className="relative" ref={notifRef}>
+            <button onClick={handleBellClick} className="relative p-2 text-muted hover:text-white">
+              <Bell size={20} />
+              {unread > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 bg-destructive text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                  {unread > 9 ? "9+" : unread}
+                </span>
+              )}
+            </button>
+            {notifOpen && (
+              <div className="absolute right-0 top-full mt-1 w-80 bg-surface border border-border rounded-xl shadow-2xl z-50 overflow-hidden">
+                <div className="px-4 py-3 border-b border-border flex items-center justify-between">
+                  <span className="font-semibold text-sm">Notificaciones</span>
+                  {notifications.length > 0 && (
+                    <button
+                      onClick={() => clearNotifications()}
+                      className="text-xs text-muted hover:text-white"
+                    >
+                      Limpiar
+                    </button>
+                  )}
+                </div>
+                <div className="max-h-96 overflow-y-auto">
+                  {notifications.length === 0 ? (
+                    <div className="px-4 py-8 text-center text-muted text-sm">
+                      Sin notificaciones
+                    </div>
+                  ) : (
+                    notifications.map((n) => (
+                      <button
+                        key={n.id}
+                        onClick={() => handleNotificationClick(n.url)}
+                        className="w-full text-left px-4 py-3 border-b border-border last:border-b-0 hover:bg-border/50 transition-colors"
+                      >
+                        <div className="font-medium text-sm">{n.title}</div>
+                        <div className="text-xs text-muted mt-0.5">{n.message}</div>
+                        <div className="text-xs text-muted mt-1">
+                          {new Date(n.createdAt).toLocaleTimeString()}
+                        </div>
+                      </button>
+                    ))
+                  )}
+                </div>
+              </div>
             )}
-          </button>
+          </div>
         </header>
 
         {/* Page content */}
