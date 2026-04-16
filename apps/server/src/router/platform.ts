@@ -1,9 +1,11 @@
 import { router, publicProcedure } from "../trpc/trpc.js";
-import { platformSettings } from "@restaurant/db";
 
 export const platformRouter = router({
-  publicContact: publicProcedure.query(async ({ ctx }) => {
-    const s = await ctx.db.select().from(platformSettings).limit(1).then((r) => r[0]);
+  publicContact: publicProcedure.query(async ({ ctx }): Promise<{
+    contactEmail: string;
+    contactPhone: string;
+  }> => {
+    const s = await ctx.db.query.platformSettings.findFirst();
     return {
       contactEmail: s?.contactEmail ?? "",
       contactPhone: s?.contactPhone ?? "",
