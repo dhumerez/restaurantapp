@@ -2,9 +2,9 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { Pool } from "pg";
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-const db = drizzle(pool);
-
-await migrate(db, { migrationsFolder: "./drizzle" });
-console.log("Migrations applied");
-await pool.end();
+export async function runMigrations(databaseUrl: string, migrationsFolder: string) {
+  const pool = new Pool({ connectionString: databaseUrl });
+  const db = drizzle(pool);
+  await migrate(db, { migrationsFolder });
+  await pool.end();
+}

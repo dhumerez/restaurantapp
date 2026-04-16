@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { trpc } from "../../../trpc.js";
-import { Plus, Minus, Trash2, Send, X } from "lucide-react";
+import { Plus, Minus, Trash2, Send, X, Check } from "lucide-react";
 
 export const Route = createFileRoute("/_app/waiter/orders/$id")({
   component: OrderPage,
@@ -25,10 +25,13 @@ function OrderPage() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isSending, setIsSending] = useState(false);
 
+  const utils = trpc.useUtils();
   const createOrder = trpc.orders.create.useMutation();
   const updateOrder = trpc.orders.update.useMutation();
   const placeOrder = trpc.orders.place.useMutation();
   const cancelOrder = trpc.orders.cancel.useMutation();
+  const cancelItem = trpc.orders.cancelItem.useMutation();
+  const serveOrder = trpc.orders.serve.useMutation();
 
   const filteredItems = selectedCategory
     ? menuItemsData.filter((i: any) => i.categoryId === selectedCategory && i.isAvailable)
@@ -37,13 +40,39 @@ function OrderPage() {
   const cartItems = Array.from(cart.values());
   const cartTotal = cartItems.reduce((s, { item, qty }) => s + Number(item.price) * qty, 0);
 
+  const existingActiveItems =
+    !isNew && order
+      ? ((order as any).items ?? []).filter((i: any) => i.status !== "cancelled")
+      : [];
+  const isDraftOrder = isNew || order?.status === "draft" || !order;
+
+  function remainingStock(item: any): number | null {
+    if (item.stock == null) return null;
+    const cartQty = cart.get(item.id)?.qty ?? 0;
+    return Math.max(0, Number(item.stock) - cartQty);
+  }
+
   function addToCart(item: any) {
+    const remaining = remainingStock(item);
+    if (remaining !== null && remaining <= 0) return;
     setCart((prev) => {
       const next = new Map(prev);
       const existing = next.get(item.id);
       next.set(item.id, { item, qty: (existing?.qty ?? 0) + 1 });
       return next;
     });
+  }
+
+  async function handleRemoveExistingItem(itemId: string) {
+    if (!id || isNew) return;
+    if (!confirm("¿Eliminar este ítem del pedido?")) return;
+    try {
+      await cancelItem.mutateAsync({ orderId: id, itemId });
+      await utils.orders.invalidate();
+      await utils.tables.invalidate();
+    } catch (e: any) {
+      alert(e.message);
+    }
   }
 
   function removeFromCart(itemId: string) {
@@ -64,10 +93,12 @@ function OrderPage() {
     setIsSending(true);
     try {
       let orderId = id;
+      let wasDraft = isDraftOrder;
 
       if (isNew) {
         const created = await createOrder.mutateAsync({ tableId: search.tableId! });
         orderId = created.id;
+        wasDraft = true;
       }
 
       await updateOrder.mutateAsync({
@@ -75,12 +106,29 @@ function OrderPage() {
         items: cartItems.map(({ item, qty }) => ({ menuItemId: item.id, quantity: qty })),
       });
 
-      await placeOrder.mutateAsync({ id: orderId });
+      if (wasDraft) {
+        await placeOrder.mutateAsync({ id: orderId });
+      }
+      setCart(new Map());
+      await utils.orders.invalidate();
+      await utils.tables.invalidate();
       navigate({ to: "/waiter/tables" });
     } catch (e: any) {
       alert(e.message);
     } finally {
       setIsSending(false);
+    }
+  }
+
+  async function handleMarkServed() {
+    if (!id || isNew) return;
+    try {
+      await serveOrder.mutateAsync({ id });
+      await utils.orders.invalidate();
+      await utils.tables.invalidate();
+      navigate({ to: "/waiter/tables" });
+    } catch (e: any) {
+      alert(e.message);
     }
   }
 
@@ -138,31 +186,67 @@ function OrderPage() {
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          {filteredItems.map((item: any) => (
-            <button
-              key={item.id}
-              onClick={() => addToCart(item)}
-              className="bg-surface border border-border rounded-xl p-3 text-left hover:border-accent transition-colors"
-            >
-              {item.imageUrl && (
-                <img src={item.imageUrl} alt={item.name} className="w-full h-24 object-cover rounded-lg mb-2" />
-              )}
-              <div className="font-medium text-sm">{item.name}</div>
-              <div className="text-accent text-sm">${item.price}</div>
-            </button>
-          ))}
+          {filteredItems.map((item: any) => {
+            const remaining = remainingStock(item);
+            const soldOut = remaining !== null && remaining <= 0;
+            return (
+              <button
+                key={item.id}
+                onClick={() => addToCart(item)}
+                disabled={soldOut}
+                className={`relative bg-surface border border-border rounded-xl p-3 text-left hover:border-accent transition-colors ${soldOut ? "opacity-50 cursor-not-allowed" : ""}`}
+              >
+                {item.imageUrl && (
+                  <img src={item.imageUrl} alt={item.name} className="w-full h-24 object-cover rounded-lg mb-2" />
+                )}
+                <div className="font-medium text-sm">{item.name}</div>
+                <div className="text-accent text-sm">${item.price}</div>
+                {remaining !== null && (
+                  <div className={`absolute top-2 right-2 text-[10px] font-semibold px-1.5 py-0.5 rounded ${soldOut ? "bg-destructive/80 text-white" : "bg-black/60 text-amber-300"}`}>
+                    {soldOut ? "Agotado" : `${remaining} restantes`}
+                  </div>
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
 
       {/* Cart panel */}
       <div className="w-full md:w-72 bg-surface border border-border rounded-xl flex flex-col">
         <div className="p-4 border-b border-border">
-          <h2 className="font-semibold">Carrito</h2>
+          <h2 className="font-semibold">Pedido</h2>
         </div>
+
+        {!isDraftOrder && existingActiveItems.length > 0 && (
+          <div className="px-3 pt-3 pb-2 border-b border-border space-y-2">
+            <div className="text-[10px] uppercase tracking-wide text-muted px-1">Ya enviado</div>
+            {existingActiveItems.map((oi: any) => (
+              <div key={oi.id} className="flex items-center justify-between gap-2">
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm truncate">{oi.itemName}</div>
+                  <div className="text-[11px] text-muted">
+                    {oi.quantity} × ${Number(oi.unitPrice).toFixed(2)}
+                  </div>
+                </div>
+                <button
+                  onClick={() => handleRemoveExistingItem(oi.id)}
+                  disabled={cancelItem.isPending || order?.status === "served"}
+                  className="p-1 text-muted hover:text-destructive disabled:opacity-30"
+                  title="Eliminar ítem"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
 
         <div className="flex-1 overflow-y-auto p-3 space-y-2">
           {cartItems.length === 0 ? (
-            <p className="text-muted text-sm text-center py-8">Agrega productos desde el menú</p>
+            <p className="text-muted text-sm text-center py-8">
+              {isDraftOrder ? "Agrega productos desde el menú" : "Agrega más productos para enviar"}
+            </p>
           ) : (
             cartItems.map(({ item, qty }) => (
               <div key={item.id} className="flex items-center justify-between gap-2">
@@ -189,6 +273,17 @@ function OrderPage() {
             <span className="text-muted">Subtotal</span>
             <span>${cartTotal.toFixed(2)}</span>
           </div>
+
+          {!isNew && order?.status === "ready" && (
+            <button
+              onClick={handleMarkServed}
+              disabled={serveOrder.isPending}
+              className="w-full bg-green-600 hover:bg-green-500 text-white font-semibold py-2 rounded-lg flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              <Check size={16} />
+              {serveOrder.isPending ? "Marcando…" : "Marcar como servido"}
+            </button>
+          )}
 
           <button
             onClick={handleSendToKitchen}

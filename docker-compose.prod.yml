@@ -1,75 +1,111 @@
 services:
   postgres:
     image: postgres:16-alpine
+    restart: always
     environment:
       POSTGRES_DB: restaurant
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-    restart: unless-stopped
+      - restaurant_pg_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d restaurant"]
       interval: 10s
+      timeout: 5s
       retries: 5
+      start_period: 30s
+    networks:
+      - restaurant_internal
 
   redis:
     image: redis:7-alpine
+    restart: always
     command: redis-server --appendonly yes
     volumes:
-      - redis_data:/data
-    restart: unless-stopped
+      - restaurant_redis_data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
+      timeout: 5s
       retries: 5
+    networks:
+      - restaurant_internal
 
   server:
-    image: ghcr.io/${GITHUB_REPO}/server:${IMAGE_TAG}
+    build:
+      context: .
+      dockerfile: apps/server/Dockerfile
+    restart: always
     depends_on:
-      postgres: { condition: service_healthy }
-      redis:    { condition: service_healthy }
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
+      NODE_ENV: production
+      PORT: "3000"
       DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/restaurant
       REDIS_URL: redis://redis:6379
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
       BETTER_AUTH_URL: https://humerez.dev
-      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
-      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
-      RESEND_API_KEY: ${RESEND_API_KEY}
-      RESEND_FROM: ${RESEND_FROM}
-      R2_ACCOUNT_ID: ${R2_ACCOUNT_ID}
-      R2_ACCESS_KEY: ${R2_ACCESS_KEY}
-      R2_SECRET_KEY: ${R2_SECRET_KEY}
-      R2_BUCKET: ${R2_BUCKET}
-      R2_PUBLIC_URL: ${R2_PUBLIC_URL}
+      CORS_ORIGIN: https://humerez.dev
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      RESEND_FROM: ${RESEND_FROM:-noreply@humerez.dev}
+      R2_ACCOUNT_ID: ${R2_ACCOUNT_ID:-}
+      R2_ACCESS_KEY: ${R2_ACCESS_KEY:-}
+      R2_SECRET_KEY: ${R2_SECRET_KEY:-}
+      R2_BUCKET: ${R2_BUCKET:-}
+      R2_PUBLIC_URL: ${R2_PUBLIC_URL:-}
       VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY}
       VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY}
-      VAPID_SUBJECT: ${VAPID_SUBJECT}
-      NODE_ENV: production
-      PORT: 3000
-      CORS_ORIGIN: https://humerez.dev
-    restart: unless-stopped
+      VAPID_SUBJECT: ${VAPID_SUBJECT:-mailto:admin@humerez.dev}
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.restaurant-api.rule=Host(`humerez.dev`) && PathPrefix(`/restaurant/api`)"
       - "traefik.http.routers.restaurant-api.entrypoints=websecure"
+      - "traefik.http.routers.restaurant-api.tls=true"
       - "traefik.http.routers.restaurant-api.tls.certresolver=letsencrypt"
-      - "traefik.http.middlewares.restaurant-strip.stripprefix.prefixes=/restaurant"
-      - "traefik.http.routers.restaurant-api.middlewares=restaurant-strip"
+      - "traefik.http.middlewares.restaurant-api-strip.stripprefix.prefixes=/restaurant"
+      - "traefik.http.routers.restaurant-api.middlewares=restaurant-api-strip"
       - "traefik.http.services.restaurant-api.loadbalancer.server.port=3000"
+      - "traefik.docker.network=web"
+    networks:
+      - restaurant_internal
+      - web
 
   web:
-    image: ghcr.io/${GITHUB_REPO}/web:${IMAGE_TAG}
-    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        VITE_API_URL: /restaurant/api
+        VITE_BASE_PATH: /restaurant/
+        VITE_VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY}
+    restart: always
+    depends_on:
+      - server
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.restaurant-web.rule=Host(`humerez.dev`) && PathPrefix(`/restaurant`)"
       - "traefik.http.routers.restaurant-web.entrypoints=websecure"
+      - "traefik.http.routers.restaurant-web.tls=true"
       - "traefik.http.routers.restaurant-web.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.restaurant-web.middlewares=restaurant-strip"
+      - "traefik.http.routers.restaurant-web.priority=10"
+      - "traefik.http.middlewares.restaurant-web-strip.stripprefix.prefixes=/restaurant"
+      - "traefik.http.routers.restaurant-web.middlewares=restaurant-web-strip"
       - "traefik.http.services.restaurant-web.loadbalancer.server.port=80"
+      - "traefik.docker.network=web"
+    networks:
+      - web
 
 volumes:
-  postgres_data:
-  redis_data:
+  restaurant_pg_data:
+  restaurant_redis_data:
+
+networks:
+  restaurant_internal:
+    driver: bridge
+  web:
+    external: true

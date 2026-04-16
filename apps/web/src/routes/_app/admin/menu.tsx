@@ -38,11 +38,19 @@ function AdminMenuPage() {
     description: "",
     price: "",
     categoryId: "",
+    stock: "",
   });
 
   // Edit item modal
   const [editItem, setEditItem] = useState<any>(null);
-  const [editForm, setEditForm] = useState({ name: "", price: "", isAvailable: true });
+  const [editForm, setEditForm] = useState({ name: "", price: "", isAvailable: true, stock: "" });
+
+  const parseStock = (s: string): number | null | undefined => {
+    const trimmed = s.trim();
+    if (trimmed === "") return null;
+    const n = Number(trimmed);
+    return Number.isFinite(n) && n >= 0 ? Math.floor(n) : undefined;
+  };
 
   const handleCreateCategory = (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,13 +71,14 @@ function AdminMenuPage() {
       {
         name: addItemForm.name,
         description: addItemForm.description || undefined,
-        price: Number(addItemForm.price),
+        price: Number(addItemForm.price).toFixed(2),
         categoryId: addItemForm.categoryId,
+        stock: parseStock(addItemForm.stock),
       },
       {
         onSuccess: () => {
           setShowAddItem(false);
-          setAddItemForm({ name: "", description: "", price: "", categoryId: "" });
+          setAddItemForm({ name: "", description: "", price: "", categoryId: "", stock: "" });
         },
       }
     );
@@ -77,7 +86,12 @@ function AdminMenuPage() {
 
   const openEdit = (item: any) => {
     setEditItem(item);
-    setEditForm({ name: item.name, price: String(item.price), isAvailable: item.isAvailable });
+    setEditForm({
+      name: item.name,
+      price: String(item.price),
+      isAvailable: item.isAvailable,
+      stock: item.stock == null ? "" : String(item.stock),
+    });
   };
 
   const handleUpdateItem = (e: React.FormEvent) => {
@@ -86,8 +100,9 @@ function AdminMenuPage() {
       {
         id: editItem.id,
         name: editForm.name,
-        price: Number(editForm.price),
+        price: Number(editForm.price).toFixed(2),
         isAvailable: editForm.isAvailable,
+        stock: parseStock(editForm.stock),
       },
       { onSuccess: () => setEditItem(null) }
     );
@@ -150,6 +165,7 @@ function AdminMenuPage() {
               <tr className="border-b border-border">
                 <th className="text-left text-muted font-medium px-4 py-3">Nombre</th>
                 <th className="text-left text-muted font-medium px-4 py-3">Precio</th>
+                <th className="text-left text-muted font-medium px-4 py-3">Stock</th>
                 <th className="text-left text-muted font-medium px-4 py-3">Disponible</th>
                 <th className="text-left text-muted font-medium px-4 py-3">Acciones</th>
               </tr>
@@ -159,6 +175,9 @@ function AdminMenuPage() {
                 <tr key={item.id} className="border-b border-border last:border-0">
                   <td className="px-4 py-3 font-medium">{item.name}</td>
                   <td className="px-4 py-3 text-accent">${item.price}</td>
+                  <td className="px-4 py-3 text-muted">
+                    {item.stock == null ? "∞" : item.stock}
+                  </td>
                   <td className="px-4 py-3">
                     <span
                       className={`text-xs px-2 py-0.5 rounded border ${
@@ -190,7 +209,7 @@ function AdminMenuPage() {
               ))}
               {filteredItems.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="px-4 py-8 text-center text-muted">
+                  <td colSpan={5} className="px-4 py-8 text-center text-muted">
                     No hay productos en esta categoría.
                   </td>
                 </tr>
@@ -272,6 +291,20 @@ function AdminMenuPage() {
                 />
               </div>
               <div>
+                <label className="block text-sm text-muted mb-1">
+                  Stock diario (vacío = ilimitado)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  placeholder="Ilimitado"
+                  value={addItemForm.stock}
+                  onChange={(e) => setAddItemForm((f) => ({ ...f, stock: e.target.value }))}
+                  className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm"
+                />
+              </div>
+              <div>
                 <label className="block text-sm text-muted mb-1">Categoría</label>
                 <select
                   required
@@ -332,6 +365,20 @@ function AdminMenuPage() {
                   step="any"
                   value={editForm.price}
                   onChange={(e) => setEditForm((f) => ({ ...f, price: e.target.value }))}
+                  className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-muted mb-1">
+                  Stock diario (vacío = ilimitado)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  placeholder="Ilimitado"
+                  value={editForm.stock}
+                  onChange={(e) => setEditForm((f) => ({ ...f, stock: e.target.value }))}
                   className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm"
                 />
               </div>

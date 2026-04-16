@@ -10,6 +10,8 @@ import {
   ingredients,
   inventoryTransactions,
   restaurants,
+  tables,
+  user,
 } from "@restaurant/db";
 import { emitter } from "../lib/emitter.js";
 import { TRPCError } from "@trpc/server";
@@ -252,25 +254,88 @@ export const ordersRouter = router({
         );
 
       if (!order) throw new TRPCError({ code: "NOT_FOUND" });
-      if (order.status !== "draft") {
+      const appendableStatuses = ["draft", "placed", "preparing", "ready"] as const;
+      if (!appendableStatuses.includes(order.status as any)) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "Can only edit draft orders",
+          message: "Cannot edit a finalized order",
         });
       }
 
-      // Delete existing items and replace
-      await ctx.db.delete(orderItems).where(eq(orderItems.orderId, input.id));
+      const isDraft = order.status === "draft";
 
-      if (input.items.length > 0) {
-        // Snapshot item names + prices at time of order (prevents price drift)
-        const menuItemIds = input.items.map((i) => i.menuItemId);
-        const menuItemRows = await ctx.db
-          .select()
-          .from(menuItems)
-          .where(inArray(menuItems.id, menuItemIds));
+      // Resolve menu item snapshots once (used for both paths).
+      const menuItemIds = input.items.map((i) => i.menuItemId);
+      const menuItemRows = menuItemIds.length > 0
+        ? await ctx.db
+            .select()
+            .from(menuItems)
+            .where(inArray(menuItems.id, menuItemIds))
+        : [];
+      const menuMap = new Map(menuItemRows.map((m: any) => [m.id, m]));
 
-        const menuMap = new Map(menuItemRows.map((m: any) => [m.id, m]));
+      if (isDraft) {
+        // Replace-all semantics (cart still authoritative).
+        await ctx.db.delete(orderItems).where(eq(orderItems.orderId, input.id));
+
+        if (input.items.length > 0) {
+          await ctx.db.insert(orderItems).values(
+            input.items.map((item) => {
+              const mi = menuMap.get(item.menuItemId);
+              if (!mi)
+                throw new TRPCError({
+                  code: "NOT_FOUND",
+                  message: `Menu item ${item.menuItemId} not found`,
+                });
+              return {
+                orderId: input.id,
+                menuItemId: item.menuItemId,
+                quantity: item.quantity,
+                unitPrice: (mi as any).price,
+                itemName: (mi as any).name,
+                notes: item.notes ?? null,
+              };
+            })
+          );
+        }
+      } else {
+        // Append semantics. Validate + decrement stock for the NEW items only,
+        // then insert them. Ingredients are deducted immediately since the
+        // kitchen starts making them right away.
+        if (input.items.length === 0) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "No items to append",
+          });
+        }
+
+        const qtyByMenuItem = new Map<string, number>();
+        for (const it of input.items) {
+          qtyByMenuItem.set(
+            it.menuItemId,
+            (qtyByMenuItem.get(it.menuItemId) ?? 0) + it.quantity
+          );
+        }
+
+        for (const mi of menuItemRows as any[]) {
+          if (mi.stock == null) continue;
+          const needed = qtyByMenuItem.get(mi.id) ?? 0;
+          if (mi.stock < needed) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: `Stock insuficiente para ${mi.name}: quedan ${mi.stock}, pediste ${needed}`,
+            });
+          }
+        }
+
+        for (const mi of menuItemRows as any[]) {
+          if (mi.stock == null) continue;
+          const needed = qtyByMenuItem.get(mi.id) ?? 0;
+          await ctx.db
+            .update(menuItems)
+            .set({ stock: sql`${menuItems.stock} - ${needed}` })
+            .where(eq(menuItems.id, mi.id));
+        }
 
         await ctx.db.insert(orderItems).values(
           input.items.map((item) => {
@@ -290,6 +355,17 @@ export const ordersRouter = router({
             };
           })
         );
+
+        await deductIngredients(
+          ctx.db,
+          ctx.restaurantId,
+          input.id,
+          ctx.user!.id,
+          input.items.map((i) => ({
+            menuItemId: i.menuItemId,
+            quantity: i.quantity,
+          }))
+        );
       }
 
       // Recalc totals — need restaurant tax rate
@@ -305,6 +381,40 @@ export const ordersRouter = router({
         userId: ctx.user!.id,
         action: "items_updated",
       });
+
+      if (!isDraft) {
+        const [updatedOrder] = await ctx.db
+          .select()
+          .from(orders)
+          .where(eq(orders.id, input.id));
+        const allItems = await ctx.db
+          .select()
+          .from(orderItems)
+          .where(eq(orderItems.orderId, input.id));
+
+        const [tableRow] = updatedOrder.tableId
+          ? await ctx.db.select().from(tables).where(eq(tables.id, updatedOrder.tableId))
+          : [null];
+        const [waiterRow] = await ctx.db
+          .select()
+          .from(user)
+          .where(eq(user.id, updatedOrder.waiterId));
+
+        const fullOrder = {
+          ...updatedOrder,
+          items: allItems,
+          tableNumber: tableRow?.number ?? null,
+          waiterName: waiterRow?.name ?? null,
+        };
+        emitter.emitOrderChange(ctx.restaurantId, {
+          event: "updated",
+          order: fullOrder as any,
+        });
+        emitter.emitKitchenChange(ctx.restaurantId, {
+          event: "item_status_changed",
+          order: fullOrder as any,
+        });
+      }
 
       return { success: true };
     }),
@@ -341,6 +451,43 @@ export const ordersRouter = router({
         });
       }
 
+      // Aggregate requested quantities per menu item (an item can appear once
+      // per row but we still want defensive grouping in case that changes).
+      const qtyByMenuItem = new Map<string, number>();
+      for (const it of items) {
+        qtyByMenuItem.set(
+          it.menuItemId,
+          (qtyByMenuItem.get(it.menuItemId) ?? 0) + Number(it.quantity)
+        );
+      }
+      const menuItemIds = Array.from(qtyByMenuItem.keys());
+      const menuRows = await ctx.db
+        .select()
+        .from(menuItems)
+        .where(inArray(menuItems.id, menuItemIds));
+
+      // Stock validation: any tracked item with insufficient stock blocks the place.
+      for (const mi of menuRows as any[]) {
+        if (mi.stock == null) continue;
+        const needed = qtyByMenuItem.get(mi.id) ?? 0;
+        if (mi.stock < needed) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: `Stock insuficiente para ${mi.name}: quedan ${mi.stock}, pediste ${needed}`,
+          });
+        }
+      }
+
+      // Decrement tracked stock.
+      for (const mi of menuRows as any[]) {
+        if (mi.stock == null) continue;
+        const needed = qtyByMenuItem.get(mi.id) ?? 0;
+        await ctx.db
+          .update(menuItems)
+          .set({ stock: sql`${menuItems.stock} - ${needed}` })
+          .where(eq(menuItems.id, mi.id));
+      }
+
       // Deduct ingredients (if this fails, order stays draft)
       await deductIngredients(
         ctx.db,
@@ -362,8 +509,17 @@ export const ordersRouter = router({
         action: "placed",
       });
 
-      // Notify kitchen and all restaurant staff
-      const fullOrder = { ...updated, items };
+      const [tableRow] = updated.tableId
+        ? await ctx.db.select().from(tables).where(eq(tables.id, updated.tableId))
+        : [null];
+      const [waiterRow] = await ctx.db.select().from(user).where(eq(user.id, updated.waiterId));
+
+      const fullOrder = {
+        ...updated,
+        items,
+        tableNumber: tableRow?.number ?? null,
+        waiterName: waiterRow?.name ?? null,
+      };
       emitter.emitOrderChange(ctx.restaurantId, {
         event: "placed",
         order: fullOrder as any,
@@ -376,9 +532,14 @@ export const ordersRouter = router({
       return updated;
     }),
 
-  serve: cashierProcedure
+  serve: restaurantProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
+      const role = ctx.user!.role;
+      if (role === "kitchen") {
+        throw new TRPCError({ code: "FORBIDDEN" });
+      }
+
       const [order] = await ctx.db
         .select()
         .from(orders)
@@ -387,6 +548,9 @@ export const ordersRouter = router({
         );
 
       if (!order) throw new TRPCError({ code: "NOT_FOUND" });
+      if (role === "waiter" && order.waiterId !== ctx.user!.id) {
+        throw new TRPCError({ code: "FORBIDDEN" });
+      }
       if (order.status !== "ready") {
         throw new TRPCError({ code: "BAD_REQUEST", message: "Order is not ready" });
       }
@@ -471,6 +635,30 @@ export const ordersRouter = router({
             ctx.user!.id,
             activeItems.map((i: any) => i.id)
           );
+
+          // Restore menu_items.stock for any tracked item.
+          const restoreByMenuItem = new Map<string, number>();
+          for (const ai of activeItems as any[]) {
+            restoreByMenuItem.set(
+              ai.menuItemId,
+              (restoreByMenuItem.get(ai.menuItemId) ?? 0) + Number(ai.quantity)
+            );
+          }
+          const ids = Array.from(restoreByMenuItem.keys());
+          if (ids.length > 0) {
+            const rows = await ctx.db
+              .select()
+              .from(menuItems)
+              .where(inArray(menuItems.id, ids));
+            for (const mi of rows as any[]) {
+              if (mi.stock == null) continue;
+              const qty = restoreByMenuItem.get(mi.id) ?? 0;
+              await ctx.db
+                .update(menuItems)
+                .set({ stock: sql`${menuItems.stock} + ${qty}` })
+                .where(eq(menuItems.id, mi.id));
+            }
+          }
         }
       }
 
@@ -512,6 +700,147 @@ export const ordersRouter = router({
       });
 
       return updated;
+    }),
+
+  cancelItem: waiterProcedure
+    .input(z.object({ orderId: z.string().uuid(), itemId: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const [order] = await ctx.db
+        .select()
+        .from(orders)
+        .where(
+          and(eq(orders.id, input.orderId), eq(orders.restaurantId, ctx.restaurantId))
+        );
+
+      if (!order) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const role = ctx.user!.role;
+      if (role === "waiter" && order.waiterId !== ctx.user!.id) {
+        throw new TRPCError({ code: "FORBIDDEN" });
+      }
+      if (order.status === "served" || order.status === "cancelled") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Cannot modify a finalized order",
+        });
+      }
+
+      const [item] = await ctx.db
+        .select()
+        .from(orderItems)
+        .where(
+          and(eq(orderItems.id, input.itemId), eq(orderItems.orderId, input.orderId))
+        );
+
+      if (!item) throw new TRPCError({ code: "NOT_FOUND" });
+      if (item.status === "cancelled") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Item already cancelled",
+        });
+      }
+
+      await ctx.db
+        .update(orderItems)
+        .set({ status: "cancelled" })
+        .where(eq(orderItems.id, input.itemId));
+
+      // Per-item ingredient restore (mirrors kitchen.ts item.cancel).
+      const recipes = await ctx.db
+        .select()
+        .from(recipeItems)
+        .where(eq(recipeItems.menuItemId, item.menuItemId));
+
+      for (const recipe of recipes) {
+        const restoreQty = Number(recipe.quantity) * Number(item.quantity);
+        await ctx.db
+          .update(ingredients)
+          .set({
+            currentStock: sql`${ingredients.currentStock} + ${restoreQty}`,
+            updatedAt: new Date(),
+          })
+          .where(eq(ingredients.id, recipe.ingredientId));
+
+        await ctx.db.insert(inventoryTransactions).values({
+          restaurantId: ctx.restaurantId,
+          ingredientId: recipe.ingredientId,
+          type: "adjustment",
+          quantity: String(restoreQty),
+          orderId: input.orderId,
+          notes: "Restored — waiter item cancelled",
+          createdBy: ctx.user!.id,
+        });
+
+        await ctx.db
+          .delete(inventoryTransactions)
+          .where(
+            and(
+              eq(inventoryTransactions.orderId, input.orderId),
+              eq(inventoryTransactions.ingredientId, recipe.ingredientId),
+              eq(inventoryTransactions.type, "usage")
+            )
+          );
+      }
+
+      // Restore menu_items.stock if tracked.
+      const [mi] = await ctx.db
+        .select()
+        .from(menuItems)
+        .where(eq(menuItems.id, item.menuItemId));
+      if (mi && (mi as any).stock != null) {
+        await ctx.db
+          .update(menuItems)
+          .set({ stock: sql`${menuItems.stock} + ${Number(item.quantity)}` })
+          .where(eq(menuItems.id, item.menuItemId));
+      }
+
+      const [restaurant] = await ctx.db
+        .select({ taxRate: restaurants.taxRate })
+        .from(restaurants)
+        .where(eq(restaurants.id, ctx.restaurantId));
+      await recalcOrder(ctx.db, input.orderId, Number(restaurant?.taxRate ?? 0));
+
+      await ctx.db.insert(orderEvents).values({
+        orderId: input.orderId,
+        userId: ctx.user!.id,
+        action: "item_cancelled",
+        details: { itemId: input.itemId, itemName: item.itemName },
+      });
+
+      const [updatedOrder] = await ctx.db
+        .select()
+        .from(orders)
+        .where(eq(orders.id, input.orderId));
+      const allItems = await ctx.db
+        .select()
+        .from(orderItems)
+        .where(eq(orderItems.orderId, input.orderId));
+
+      const [tableRow] = updatedOrder.tableId
+        ? await ctx.db.select().from(tables).where(eq(tables.id, updatedOrder.tableId))
+        : [null];
+      const [waiterRow] = await ctx.db
+        .select()
+        .from(user)
+        .where(eq(user.id, updatedOrder.waiterId));
+
+      const fullOrder = {
+        ...updatedOrder,
+        items: allItems,
+        tableNumber: tableRow?.number ?? null,
+        waiterName: waiterRow?.name ?? null,
+      };
+
+      emitter.emitOrderChange(ctx.restaurantId, {
+        event: "updated",
+        order: fullOrder as any,
+      });
+      emitter.emitKitchenChange(ctx.restaurantId, {
+        event: "item_status_changed",
+        order: fullOrder as any,
+      });
+
+      return { success: true };
     }),
 
   applyDiscount: cashierProcedure

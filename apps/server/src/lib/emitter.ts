@@ -9,7 +9,9 @@ export type OrderChangeEvent = {
     id: string;
     status: string;
     tableId: string | null;
+    tableNumber: number | null;
     waiterId: string;
+    waiterName: string | null;
     total: string;
     items: Array<{ id: string; status: string; itemName: string; quantity: number }>;
   };
@@ -21,6 +23,8 @@ export type KitchenChangeEvent = {
     id: string;
     status: string;
     tableId: string | null;
+    tableNumber: number | null;
+    waiterName: string | null;
     items: Array<{ id: string; status: string; itemName: string; quantity: number; notes: string | null }>;
   };
 };

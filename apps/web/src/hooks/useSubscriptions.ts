@@ -16,18 +16,25 @@ export function useSubscriptions() {
       utils.orders.invalidate();
       utils.tables.invalidate();
       if (data.event === "ready") {
+        const tableLabel = data.order.tableNumber
+          ? `Mesa ${data.order.tableNumber}`
+          : "un pedido";
         addNotification({
           type: "order_ready",
           title: "Pedido listo",
-          message: `El pedido está listo para servir`,
+          message: `${tableLabel} está lista para servir`,
           url: `/waiter/orders/${data.order.id}`,
         });
       }
       if (data.event === "placed") {
+        const tableLabel = data.order.tableNumber
+          ? `Mesa ${data.order.tableNumber}`
+          : "Nuevo pedido";
+        const waiterSuffix = data.order.waiterName ? ` · ${data.order.waiterName}` : "";
         addNotification({
           type: "order_placed",
           title: "Nuevo pedido",
-          message: `Se registró un nuevo pedido`,
+          message: `${tableLabel}${waiterSuffix}`,
         });
       }
     },

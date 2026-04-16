@@ -90,6 +90,10 @@ export const menuItems = pgTable("menu_items", {
   price: decimal("price", { precision: 10, scale: 2 }).notNull(),
   imageUrl: varchar("image_url", { length: 500 }),
   isAvailable: boolean("is_available").notNull().default(true),
+  // Daily stock count. null = unlimited (always available as long as
+  // isAvailable is true). 0 = sold out. Decremented on order place,
+  // restored on item cancellation.
+  stock: integer("stock"),
   sortOrder: integer("sort_order").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
@@ -153,7 +157,7 @@ export const orderEvents = pgTable("order_events", {
   orderId: uuid("order_id").notNull().references(() => orders.id, { onDelete: "cascade" }),
   userId: text("user_id").notNull().references(() => user.id),
   action: varchar("action", { length: 30 }).notNull()
-    .$type<"created"|"items_updated"|"placed"|"status_changed"|"item_status_changed"|"transferred"|"merged"|"discount_applied"|"served"|"cancelled">(),
+    .$type<"created"|"items_updated"|"placed"|"status_changed"|"item_status_changed"|"item_cancelled"|"transferred"|"merged"|"discount_applied"|"served"|"cancelled">(),
   details: jsonb("details").$type<Record<string, unknown>>(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
