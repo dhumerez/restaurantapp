@@ -15,6 +15,13 @@
       "when": 1776298564836,
       "tag": "0001_cool_prism",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1776382155416,
+      "tag": "0002_rich_flatman",
+      "breakpoints": true
     }
   ]
 }
