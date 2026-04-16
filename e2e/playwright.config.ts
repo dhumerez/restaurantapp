@@ -13,7 +13,7 @@ export default defineConfig({
   timeout: 30000,
   expect: { timeout: 10000 },
   use: {
-    baseURL: process.env.BASE_URL || "http://localhost:5173",
+    baseURL: (process.env.BASE_URL || "http://localhost:5173").replace(/\/?$/, "/"),
     trace: "on-first-retry",
     screenshot: "only-on-failure",
     ignoreHTTPSErrors: true,

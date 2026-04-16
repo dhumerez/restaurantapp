@@ -2,18 +2,18 @@ import { test, expect, type Page } from "@playwright/test";
 
 async function login(page: Page, email: string, password: string) {
   await page.goto("login");
-  await page.getByLabel(/correo electrónico/i).fill(email);
-  await page.getByLabel(/contraseña/i).fill(password);
+  await page.getByPlaceholder(/correo electrónico/i).fill(email);
+  await page.getByPlaceholder(/contraseña/i).fill(password);
   await page.getByRole("button", { name: /iniciar sesión/i }).click();
 }
 
 test.describe("Authentication", () => {
   test("shows login page", async ({ page }) => {
     await page.goto("login");
-    await expect(page.getByText("Restaurante")).toBeVisible();
-    await expect(page.getByText("Sistema de Punto de Venta")).toBeVisible();
-    await expect(page.getByLabel(/correo electrónico/i)).toBeVisible();
-    await expect(page.getByLabel(/contraseña/i)).toBeVisible();
+    await expect(page.getByText("Tu Restaurante")).toBeVisible();
+    await expect(page.getByText("Inicia sesión para continuar")).toBeVisible();
+    await expect(page.getByPlaceholder(/correo electrónico/i)).toBeVisible();
+    await expect(page.getByPlaceholder(/contraseña/i)).toBeVisible();
     await expect(page.getByRole("button", { name: /iniciar sesión/i })).toBeVisible();
   });
 
