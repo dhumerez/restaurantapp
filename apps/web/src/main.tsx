@@ -12,7 +12,8 @@ const queryClient = new QueryClient({
   },
 });
 
-const router = createRouter({ routeTree });
+const basePath = import.meta.env.BASE_URL.replace(/\/$/, "") || "/";
+const router = createRouter({ routeTree, basepath: basePath });
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
