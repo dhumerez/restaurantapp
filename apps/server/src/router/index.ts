@@ -8,11 +8,13 @@ import { reportsRouter } from "./reports.js";
 import { notificationsRouter } from "./notifications.js";
 import { authRouter } from "./auth.js";
 import { inventoryRouter } from "./inventory.js";
+import { meRouter } from "./me.js";
 import { superadminRouter } from "./superadmin.js";
 import { pushRouter } from "./push.js";
 
 export const appRouter = router({
   auth: authRouter,
+  me: meRouter,
   menu: menuRouter,
   tables: tablesRouter,
   staff: staffRouter,
