@@ -56,6 +56,7 @@ export async function createMenuItem(
     price: string;
     sortOrder?: number;
     imageUrl?: string;
+    stock?: number | null;
   }
 ) {
   const [created] = await db.insert(menuItems).values({
@@ -77,6 +78,7 @@ export async function updateMenuItem(
     sortOrder: number;
     imageUrl: string;
     categoryId: string;
+    stock: number | null;
   }>
 ) {
   const [updated] = await db

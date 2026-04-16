@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { eq, and, sql } from "drizzle-orm";
 import { router, kitchenProcedure } from "../trpc/trpc.js";
-import { orders, orderItems, orderEvents, recipeItems, ingredients, inventoryTransactions, tables, user } from "@restaurant/db";
+import { orders, orderItems, orderEvents, menuItems, recipeItems, ingredients, inventoryTransactions, tables, user } from "@restaurant/db";
 import { emitter } from "../lib/emitter.js";
 import { TRPCError } from "@trpc/server";
 import { sendPushNotification } from "./push.js";
@@ -191,6 +191,18 @@ export const kitchenRouter = router({
           .update(orderItems)
           .set({ status: "cancelled" })
           .where(eq(orderItems.id, input.id));
+
+        // Restore menu_items.stock if tracked.
+        const [mi] = await ctx.db
+          .select()
+          .from(menuItems)
+          .where(eq(menuItems.id, item.menuItemId));
+        if (mi && (mi as any).stock != null) {
+          await ctx.db
+            .update(menuItems)
+            .set({ stock: sql`${menuItems.stock} + ${Number(item.quantity)}` })
+            .where(eq(menuItems.id, item.menuItemId));
+        }
 
         const recipes = await ctx.db
           .select()

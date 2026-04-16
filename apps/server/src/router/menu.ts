@@ -36,6 +36,7 @@ export const menuRouter = router({
       description: z.string().optional(),
       price: z.string().regex(/^\d+(\.\d{1,2})?$/),
       sortOrder: z.number().optional(),
+      stock: z.number().int().min(0).nullable().optional(),
     }))
     .mutation(({ ctx, input }) =>
       menuService.createMenuItem(ctx.db, ctx.restaurantId, input)
@@ -50,6 +51,7 @@ export const menuRouter = router({
       isAvailable: z.boolean().optional(),
       sortOrder: z.number().optional(),
       categoryId: z.string().uuid().optional(),
+      stock: z.number().int().min(0).nullable().optional(),
     }))
     .mutation(({ ctx, input }) => {
       const { id, ...data } = input;
