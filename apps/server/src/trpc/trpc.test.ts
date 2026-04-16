@@ -107,9 +107,9 @@ describe("restaurantProcedure status allow-list", () => {
       const ALLOWED = new Set(["active", "trial", "demo"]);
       const r = await (ctx.db as any).query.restaurants.findFirst();
       if (!r || !ALLOWED.has(r.status)) throw new TRPCError({ code: "FORBIDDEN", message: "RESTAURANT_INACTIVE" });
-      return next({ ctx: { ...ctx, restaurantId: u.restaurantId, role: u.role } });
+      return next({ ctx: { ...ctx, restaurantId: u.restaurantId, role: u.role, restaurant: r } });
     });
-    const r = t2.router({ q: t2.procedure.use(mw).query(() => "ok") });
+    const r = t2.router({ q: t2.procedure.use(mw).query(({ ctx }) => (ctx as any).restaurant?.id ?? null) });
     const c = r.createCaller({
       db: makeDbWithStatus(status) as any,
       req: {} as any,
@@ -118,7 +118,7 @@ describe("restaurantProcedure status allow-list", () => {
       user: { role: "admin", restaurantId: "r1", isActive: true },
     });
     if (shouldPass) {
-      await expect(c.q()).resolves.toBe("ok");
+      await expect(c.q()).resolves.toBe("r1");
     } else {
       await expect(c.q()).rejects.toMatchObject({ code: "FORBIDDEN", message: "RESTAURANT_INACTIVE" });
     }
