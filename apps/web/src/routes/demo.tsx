@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { authClient } from "../auth.js";
 import { trpc } from "../trpc.js";
 
 export const Route = createFileRoute("/demo")({
@@ -15,7 +16,8 @@ const roles = [
 function DemoPage() {
   const navigate = useNavigate();
   const createDemo = trpc.auth.demo.create.useMutation({
-    onSuccess(data) {
+    async onSuccess(data) {
+      await authClient.getSession({ query: { disableCookieCache: true } });
       navigate({ to: data.redirect });
     },
   });
