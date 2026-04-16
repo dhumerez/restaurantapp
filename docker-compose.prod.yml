@@ -80,7 +80,7 @@ services:
       context: .
       dockerfile: apps/web/Dockerfile
       args:
-        VITE_API_URL: /restaurant/api
+        VITE_API_URL: https://humerez.dev/restaurant
         VITE_BASE_PATH: /restaurant/
         VITE_VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY}
     restart: always
