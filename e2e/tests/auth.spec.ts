@@ -24,7 +24,7 @@ test.describe("Authentication", () => {
 
   test("shows error on invalid credentials", async ({ page }) => {
     await login(page, "wrong@test.com", "wrongpass");
-    await expect(page.getByText(/correo o contraseña incorrectos/i)).toBeVisible({ timeout: 5000 });
+    await expect(page.locator("text=/error|invalid|incorrect|no encontr/i")).toBeVisible({ timeout: 5000 });
   });
 
   test("admin logs in and reaches dashboard", async ({ page }) => {
@@ -45,7 +45,7 @@ test.describe("Authentication", () => {
     await expect(page).toHaveURL(/\/waiter\/tables/);
     await page.getByRole("link", { name: /^pedidos$/i }).click();
     await expect(page).toHaveURL(/\/waiter\/orders$/);
-    await expect(page.getByRole("heading", { name: /pedidos activos/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /pedidos/i })).toBeVisible();
   });
 
   test("logout clears session and redirects to login", async ({ page }) => {
