@@ -11,6 +11,7 @@ import { inventoryRouter } from "./inventory.js";
 import { meRouter } from "./me.js";
 import { superadminRouter } from "./superadmin.js";
 import { pushRouter } from "./push.js";
+import { platformRouter } from "./platform.js";
 
 export const appRouter = router({
   auth: authRouter,
@@ -25,6 +26,7 @@ export const appRouter = router({
   inventory: inventoryRouter,
   superadmin: superadminRouter,
   push: pushRouter,
+  platform: platformRouter,
 });
 
 export type AppRouter = typeof appRouter;
