@@ -3,6 +3,7 @@ import { Bell, ChefHat, ClipboardList, LayoutDashboard, LogOut, Menu, ShoppingBa
 import { useEffect, useRef, useState } from "react";
 import { authClient } from "../auth.js";
 import { useNotificationStore } from "../store/notificationStore.js";
+import { useSessionStore } from "../store/sessionStore.js";
 
 type NavItem = {
   to: string;
@@ -45,7 +46,9 @@ const navItems: NavItem[] = [
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const { data: session } = authClient.useSession();
+  const storeSession = useSessionStore((s) => s.session);
+  const { data: authSession } = authClient.useSession();
+  const session = storeSession ?? authSession;
   const role = (session?.user as any)?.role ?? "";
   const unread = useNotificationStore((s) => s.unreadCount);
   const notifications = useNotificationStore((s) => s.notifications);
