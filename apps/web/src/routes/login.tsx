@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { authClient } from "../auth.js";
 
@@ -36,7 +36,7 @@ function LoginPage() {
   }
 
   async function handleGoogle() {
-    await authClient.signIn.social({ provider: "google", callbackURL: "/" });
+    await authClient.signIn.social({ provider: "google", callbackURL: import.meta.env.BASE_URL });
   }
 
   return (
@@ -108,9 +108,9 @@ function LoginPage() {
         </p>
 
         <p className="text-center">
-          <a href="/demo" className="text-sm text-accent hover:underline">
+          <Link to="/demo" className="text-sm text-accent hover:underline">
             Probar modo Demo →
-          </a>
+          </Link>
         </p>
       </div>
     </div>

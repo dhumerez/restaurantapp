@@ -84,7 +84,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   async function handleLogout() {
     await authClient.signOut();
-    window.location.href = "/login";
+    window.location.href = import.meta.env.BASE_URL + "login";
   }
 
   return (

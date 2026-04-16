@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { trpc } from "../trpc.js";
 
 export const Route = createFileRoute("/demo")({
@@ -43,7 +43,7 @@ function DemoPage() {
         </div>
 
         <p className="text-center text-sm text-muted">
-          <a href="/login" className="hover:underline">← Volver al inicio de sesión</a>
+          <Link to="/login" className="hover:underline">← Volver al inicio de sesión</Link>
         </p>
       </div>
     </div>
