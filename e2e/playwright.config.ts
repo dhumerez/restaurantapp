@@ -61,6 +61,15 @@ export default defineConfig({
       },
     },
     {
+      name: "superadmin",
+      testMatch: /superadmin\.spec\.ts/,
+      dependencies: ["setup"],
+      use: {
+        ...devices["Desktop Chrome"],
+        storageState: path.join(STORAGE_DIR, "superadmin.json"),
+      },
+    },
+    {
       name: "pwa",
       testMatch: /pwa\.spec\.ts/,
       use: { ...devices["Desktop Chrome"] },
@@ -68,7 +77,7 @@ export default defineConfig({
     {
       name: "auth",
       testMatch: /auth\.spec\.ts/,
-      dependencies: ["admin", "waiter", "kitchen", "cashier"],
+      dependencies: ["admin", "waiter", "kitchen", "cashier", "superadmin"],
       use: { ...devices["Desktop Chrome"] },
       // Auth tests handle their own login — runs after stored-session projects
       // because the logout test invalidates the admin server-side session.
