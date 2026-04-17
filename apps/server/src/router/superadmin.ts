@@ -3,6 +3,7 @@ import { and, count, eq, gte, isNull } from "drizzle-orm";
 import { router, superadminProcedure } from "../trpc/trpc.js";
 import { restaurants, user, platformSettings, tables, menuItems, orders } from "@restaurant/db";
 import { TRPCError } from "@trpc/server";
+import { auth } from "../lib/auth.js";
 
 export const superadminRouter = router({
   restaurants: router({
@@ -54,6 +55,68 @@ export const superadminRouter = router({
           },
           staff,
         };
+      }),
+    assignAdmin: superadminProcedure
+      .input(
+        z.discriminatedUnion("mode", [
+          z.object({
+            restaurantId: z.string().uuid(),
+            mode: z.literal("existing"),
+            userId: z.string(),
+          }),
+          z.object({
+            restaurantId: z.string().uuid(),
+            mode: z.literal("new"),
+            email: z.string().email(),
+            name: z.string().min(1),
+            password: z.string().min(8),
+          }),
+        ])
+      )
+      .mutation(async ({ ctx, input }) => {
+        // Ensure restaurant exists
+        const restaurant = await ctx.db.query.restaurants.findFirst({
+          where: eq(restaurants.id, input.restaurantId),
+        });
+        if (!restaurant) throw new TRPCError({ code: "NOT_FOUND", message: "Restaurant not found" });
+
+        if (input.mode === "existing") {
+          // Ensure user exists
+          const existing = await ctx.db.query.user.findFirst({
+            where: eq(user.id, input.userId),
+          });
+          if (!existing) throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
+
+          const [patched] = await ctx.db
+            .update(user)
+            .set({ role: "admin", restaurantId: input.restaurantId, isActive: true, emailVerified: true, updatedAt: new Date() })
+            .where(eq(user.id, input.userId))
+            .returning();
+          return patched;
+        } else {
+          // Email conflict pre-check
+          const conflict = await ctx.db.query.user.findFirst({
+            where: eq(user.email, input.email),
+          });
+          if (conflict) throw new TRPCError({ code: "CONFLICT", message: "Email already registered" });
+
+          // Create via Better Auth
+          await auth.api.signUpEmail({ body: { email: input.email, name: input.name, password: input.password } });
+
+          // Look up the created user
+          const created = await ctx.db.query.user.findFirst({
+            where: eq(user.email, input.email),
+          });
+          if (!created) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "User creation failed" });
+
+          // Patch and return
+          const [patched] = await ctx.db
+            .update(user)
+            .set({ role: "admin", restaurantId: input.restaurantId, isActive: true, emailVerified: true, updatedAt: new Date() })
+            .where(eq(user.id, created.id))
+            .returning();
+          return patched;
+        }
       }),
   }),
   pendingUsers: router({
