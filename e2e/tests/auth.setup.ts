@@ -43,3 +43,12 @@ setup("login as cashier", async ({ page }) => {
   await expect(page).toHaveURL(/\/cashier/, { timeout: 10000 });
   await page.context().storageState({ path: path.join(STORAGE_DIR, "cashier.json") });
 });
+
+setup("login as superadmin", async ({ page }) => {
+  await page.goto("login");
+  await page.getByPlaceholder(/correo electrónico/i).fill("superadmin@demo.com");
+  await page.getByPlaceholder(/contraseña/i).fill("password123");
+  await page.getByRole("button", { name: /iniciar sesión/i }).click();
+  await expect(page).toHaveURL(/\/platform\/restaurants/, { timeout: 10000 });
+  await page.context().storageState({ path: path.join(STORAGE_DIR, "superadmin.json") });
+});

@@ -212,6 +212,14 @@ export const pushSubscriptions = pgTable("push_subscriptions", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [index("push_sub_user_id_idx").on(t.userId)]);
 
+// Platform Settings (singleton)
+export const platformSettings = pgTable("platform_settings", {
+  id: text("id").primaryKey().default("singleton"),
+  contactEmail: text("contact_email").notNull().default(""),
+  contactPhone: text("contact_phone").notNull().default(""),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 // Relations
 export const restaurantsRelations = relations(restaurants, ({ many }) => ({
   categories: many(categories),

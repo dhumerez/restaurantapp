@@ -87,3 +87,47 @@ describe("restaurantProcedure", () => {
     await expect(c.restaurant()).resolves.toBe("ok");
   });
 });
+
+describe("restaurantProcedure status allow-list", () => {
+  const makeDbWithStatus = (status: string | undefined) => ({
+    query: {
+      restaurants: {
+        findFirst: async () => (status === undefined ? undefined : { id: "r1", status }),
+      },
+    },
+  });
+
+  const caseFor = async (status: string | undefined, shouldPass: boolean) => {
+    const t2 = initTRPC.context<ReturnType<typeof makeCtx>>().create();
+    const mw = t2.middleware(async ({ ctx, next }) => {
+      if (!ctx.user || !ctx.session) throw new TRPCError({ code: "UNAUTHORIZED" });
+      const u = ctx.user as NonNullable<MockUser>;
+      if (!u.restaurantId || !u.role) throw new TRPCError({ code: "FORBIDDEN", message: "No restaurant assigned" });
+      if (!u.isActive) throw new TRPCError({ code: "FORBIDDEN", message: "Account deactivated" });
+      const ALLOWED = new Set(["active", "trial", "demo"]);
+      const r = await (ctx.db as any).query.restaurants.findFirst();
+      if (!r || !ALLOWED.has(r.status)) throw new TRPCError({ code: "FORBIDDEN", message: "RESTAURANT_INACTIVE" });
+      return next({ ctx: { ...ctx, restaurantId: u.restaurantId, role: u.role, restaurant: r } });
+    });
+    const r = t2.router({ q: t2.procedure.use(mw).query(({ ctx }) => (ctx as any).restaurant?.id ?? null) });
+    const c = r.createCaller({
+      db: makeDbWithStatus(status) as any,
+      req: {} as any,
+      res: {} as any,
+      session: { id: "s1" },
+      user: { role: "admin", restaurantId: "r1", isActive: true },
+    });
+    if (shouldPass) {
+      await expect(c.q()).resolves.toBe("r1");
+    } else {
+      await expect(c.q()).rejects.toMatchObject({ code: "FORBIDDEN", message: "RESTAURANT_INACTIVE" });
+    }
+  };
+
+  it("allows active", () => caseFor("active", true));
+  it("allows trial", () => caseFor("trial", true));
+  it("allows demo", () => caseFor("demo", true));
+  it("blocks inactive", () => caseFor("inactive", false));
+  it("blocks suspended", () => caseFor("suspended", false));
+  it("blocks missing restaurant row", () => caseFor(undefined, false));
+});

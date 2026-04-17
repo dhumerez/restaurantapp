@@ -1,5 +1,5 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { Bell, ChefHat, ClipboardList, LayoutDashboard, LogOut, Menu, ShoppingBag, Users, UtensilsCrossed, Warehouse } from "lucide-react";
+import { Bell, Building2, ChefHat, ClipboardList, LayoutDashboard, LogOut, Menu, Settings, ShoppingBag, UserCheck, Users, UtensilsCrossed, Warehouse } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { authClient } from "../auth.js";
 import { useNotificationStore } from "../store/notificationStore.js";
@@ -43,6 +43,9 @@ const navItems: NavItem[] = [
   },
   { to: "/cashier/tables", label: "Mesas", icon: <ClipboardList size={18} />, roles: ["cashier"] },
   { to: "/kitchen", label: "Cocina", icon: <ChefHat size={18} />, roles: ["kitchen"] },
+  { to: "/platform/restaurants", label: "Restaurantes", icon: <Building2 size={18} />, roles: ["superadmin"] },
+  { to: "/platform/pending-users", label: "Usuarios pendientes", icon: <UserCheck size={18} />, roles: ["superadmin"] },
+  { to: "/platform/settings", label: "Ajustes", icon: <Settings size={18} />, roles: ["superadmin"] },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {

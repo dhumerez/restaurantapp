@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { trpc } from "../../../trpc.js";
 
 export const Route = createFileRoute("/_app/platform/restaurants")({
@@ -86,7 +86,15 @@ function PlatformRestaurantsPage() {
           <tbody>
             {(restaurants as any[]).map((r: any) => (
               <tr key={r.id} className="border-b border-border last:border-0">
-                <td className="px-4 py-3 font-medium">{r.name}</td>
+                <td className="px-4 py-3 font-medium">
+                  <Link
+                    to="/platform/restaurants/$restaurantId"
+                    params={{ restaurantId: r.id }}
+                    className="hover:underline"
+                  >
+                    {r.name}
+                  </Link>
+                </td>
                 <td className="px-4 py-3 text-muted font-mono text-xs">{r.slug}</td>
                 <td className="px-4 py-3">
                   <span
