@@ -16,7 +16,7 @@ export const superadminRouter = router({
         return restaurant;
       }),
     update: superadminProcedure
-      .input(z.object({ id: z.string().uuid(), status: z.enum(["active","trial","suspended","inactive"]).optional(), name: z.string().min(1).optional(), taxRate: z.string().optional() }))
+      .input(z.object({ id: z.string().uuid(), status: z.enum(["active","trial","suspended","inactive"]).optional(), name: z.string().min(1).optional(), taxRate: z.string().optional(), subscriptionTier: z.enum(["free","subscribed","allaccess"]).optional() }))
       .mutation(async ({ ctx, input }) => {
         const { id, ...data } = input;
         const [updated] = await ctx.db.update(restaurants).set({ ...data, updatedAt: new Date() }).where(eq(restaurants.id, id)).returning();

@@ -22,6 +22,66 @@ const build = (db: any) =>
     }),
   });
 
+const buildUpdate = (db: any) =>
+  t.router({
+    update: t.procedure.use(saMw)
+      .input(z.object({
+        id: z.string().uuid(),
+        status: z.enum(["active", "trial", "suspended", "inactive"]).optional(),
+        name: z.string().min(1).optional(),
+        taxRate: z.string().optional(),
+        subscriptionTier: z.enum(["free", "subscribed", "allaccess"]).optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { id, ...data } = input;
+        const updated = await db.updateRestaurant(id, data);
+        if (!updated) throw new TRPCError({ code: "NOT_FOUND" });
+        return updated;
+      }),
+  });
+
+describe("superadmin.restaurants.update", () => {
+  it("passes subscriptionTier to the persistence layer", async () => {
+    const calls: Array<{ id: string; data: any }> = [];
+    const db = {
+      updateRestaurant: async (id: string, data: any) => {
+        calls.push({ id, data });
+        return { id, ...data };
+      },
+    };
+    const c = buildUpdate(db).createCaller({ user: { role: "superadmin" } } as any);
+    const res = await c.update({ id: "00000000-0000-0000-0000-000000000001", subscriptionTier: "allaccess" });
+    expect(calls).toHaveLength(1);
+    expect(calls[0].data.subscriptionTier).toBe("allaccess");
+    expect(res.subscriptionTier).toBe("allaccess");
+  });
+
+  it("accepts all three valid subscriptionTier enum values", async () => {
+    const db = { updateRestaurant: async (id: string, data: any) => ({ id, ...data }) };
+    const c = buildUpdate(db).createCaller({ user: { role: "superadmin" } } as any);
+    for (const tier of ["free", "subscribed", "allaccess"] as const) {
+      const res = await c.update({ id: "00000000-0000-0000-0000-000000000001", subscriptionTier: tier });
+      expect(res.subscriptionTier).toBe(tier);
+    }
+  });
+
+  it("rejects an invalid subscriptionTier value", async () => {
+    const db = { updateRestaurant: async (id: string, data: any) => ({ id, ...data }) };
+    const c = buildUpdate(db).createCaller({ user: { role: "superadmin" } } as any);
+    await expect(
+      c.update({ id: "00000000-0000-0000-0000-000000000001", subscriptionTier: "pro" } as any)
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
+
+  it("throws FORBIDDEN for non-superadmin", async () => {
+    const db = { updateRestaurant: async (id: string, data: any) => ({ id, ...data }) };
+    const c = buildUpdate(db).createCaller({ user: { role: "admin" } } as any);
+    await expect(
+      c.update({ id: "00000000-0000-0000-0000-000000000001", subscriptionTier: "free" })
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
+  });
+});
+
 describe("superadmin.restaurants.get", () => {
   it("returns restaurant + stats + staff", async () => {
     const db = {
