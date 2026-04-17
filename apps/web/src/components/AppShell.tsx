@@ -44,6 +44,7 @@ const navItems: NavItem[] = [
   { to: "/cashier/tables", label: "Mesas", icon: <ClipboardList size={18} />, roles: ["cashier"] },
   { to: "/kitchen", label: "Cocina", icon: <ChefHat size={18} />, roles: ["kitchen"] },
   { to: "/platform/restaurants", label: "Restaurantes", icon: <Building2 size={18} />, roles: ["superadmin"] },
+  { to: "/platform/users", label: "Usuarios", icon: <Users size={18} />, roles: ["superadmin"] },
   { to: "/platform/pending-users", label: "Usuarios pendientes", icon: <UserCheck size={18} />, roles: ["superadmin"] },
   { to: "/platform/settings", label: "Ajustes", icon: <Settings size={18} />, roles: ["superadmin"] },
 ];
