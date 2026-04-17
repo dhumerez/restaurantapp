@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { and, count, eq, gte, isNull } from "drizzle-orm";
+import { and, count, desc, eq, gte, isNull } from "drizzle-orm";
 import { router, superadminProcedure } from "../trpc/trpc.js";
 import { restaurants, user, platformSettings, tables, menuItems, orders } from "@restaurant/db";
 import { TRPCError } from "@trpc/server";
@@ -117,6 +117,85 @@ export const superadminRouter = router({
             .returning();
           return patched;
         }
+      }),
+  }),
+  users: router({
+    list: superadminProcedure.query(async ({ ctx }) => {
+      const rows = await ctx.db
+        .select({
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          isActive: user.isActive,
+          createdAt: user.createdAt,
+          restaurantId: restaurants.id,
+          restaurantName: restaurants.name,
+          restaurantSlug: restaurants.slug,
+          restaurantStatus: restaurants.status,
+          restaurantTier: restaurants.subscriptionTier,
+        })
+        .from(user)
+        .leftJoin(restaurants, eq(user.restaurantId, restaurants.id))
+        .orderBy(desc(user.createdAt));
+
+      return rows.map((row) => {
+        const { restaurantId, restaurantName, restaurantSlug, restaurantStatus, restaurantTier, ...userFields } = row;
+        return {
+          ...userFields,
+          restaurant: restaurantId
+            ? { id: restaurantId, name: restaurantName, slug: restaurantSlug, status: restaurantStatus, subscriptionTier: restaurantTier }
+            : null,
+        };
+      });
+    }),
+    create: superadminProcedure
+      .input(
+        z.object({
+          email: z.string().email(),
+          name: z.string().min(1),
+          password: z.string().min(8),
+          role: z.enum(["admin", "waiter", "kitchen", "cashier", "superadmin"]).optional(),
+          restaurantId: z.string().uuid().optional(),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        // Email conflict pre-check
+        const conflict = await ctx.db.query.user.findFirst({
+          where: eq(user.email, input.email),
+        });
+        if (conflict) throw new TRPCError({ code: "CONFLICT", message: "Email already registered" });
+
+        // Create via Better Auth
+        await auth.api.signUpEmail({ body: { email: input.email, name: input.name, password: input.password } });
+
+        // Look up the created user
+        const created = await ctx.db.query.user.findFirst({
+          where: eq(user.email, input.email),
+        });
+        if (!created) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "User creation failed" });
+
+        // If role is provided, patch the user
+        if (input.role !== undefined) {
+          const patch: Record<string, unknown> = {
+            role: input.role,
+            isActive: true,
+            emailVerified: true,
+            updatedAt: new Date(),
+          };
+          if (input.role !== "superadmin" && input.restaurantId !== undefined) {
+            patch.restaurantId = input.restaurantId;
+          }
+          const [patched] = await ctx.db
+            .update(user)
+            .set(patch)
+            .where(eq(user.id, created.id))
+            .returning();
+          return patched;
+        }
+
+        // No role provided: return the pending user as-is
+        return created;
       }),
   }),
   pendingUsers: router({
