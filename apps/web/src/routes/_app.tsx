@@ -17,7 +17,7 @@ function AppLayout() {
 
 async function fetchSession() {
   const res = await fetch(
-    `${import.meta.env.VITE_API_URL}/api/auth/get-session`,
+    `${import.meta.env.VITE_API_URL ?? ""}/api/auth/get-session`,
     { credentials: "include" },
   );
   if (!res.ok) return null;
@@ -35,7 +35,7 @@ export const Route = createFileRoute("/_app")({
     if (role !== "superadmin") {
       // Fetch restaurant status for lockout check
       const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/trpc/me.context?batch=1&input=${encodeURIComponent(JSON.stringify({ "0": { json: null } }))}`,
+        `${import.meta.env.VITE_API_URL ?? ""}/api/trpc/me.context?batch=1&input=${encodeURIComponent(JSON.stringify({ "0": { json: null } }))}`,
         { credentials: "include" },
       );
       if (res.ok) {

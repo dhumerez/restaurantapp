@@ -3,7 +3,7 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 export const Route = createFileRoute("/")({
   beforeLoad: async () => {
     const res = await fetch(
-      `${import.meta.env.VITE_API_URL}/api/auth/get-session`,
+      `${import.meta.env.VITE_API_URL ?? ""}/api/auth/get-session`,
       { credentials: "include" },
     );
     if (!res.ok) throw redirect({ to: "/login" });
