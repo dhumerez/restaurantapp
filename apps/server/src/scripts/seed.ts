@@ -78,6 +78,7 @@ async function main() {
       currency: "USD",
       taxRate: "10.00",
       status: "demo",
+      subscriptionTier: "allaccess",
     })
     .returning();
 
