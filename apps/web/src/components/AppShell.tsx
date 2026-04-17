@@ -45,7 +45,7 @@ const navItems: NavItem[] = [
   { to: "/kitchen", label: "Cocina", icon: <ChefHat size={18} />, roles: ["kitchen"] },
   { to: "/platform/restaurants", label: "Restaurantes", icon: <Building2 size={18} />, roles: ["superadmin"] },
   { to: "/platform/pending-users", label: "Usuarios pendientes", icon: <UserCheck size={18} />, roles: ["superadmin"] },
-  { to: "/platform/settings" as any, label: "Ajustes", icon: <Settings size={18} />, roles: ["superadmin"] },
+  { to: "/platform/settings", label: "Ajustes", icon: <Settings size={18} />, roles: ["superadmin"] },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
