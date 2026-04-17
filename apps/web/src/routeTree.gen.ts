@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as RestaurantInactiveRouteImport } from './routes/restaurant-inactive'
 import { Route as PendingRouteImport } from './routes/pending'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DemoRouteImport } from './routes/demo'
@@ -31,6 +32,11 @@ import { Route as AppWaiterOrdersIdRouteImport } from './routes/_app/waiter/orde
 import { Route as AppPlatformRestaurantsRestaurantIdRouteImport } from './routes/_app/platform/restaurants.$restaurantId'
 import { Route as AppCashierOrdersIdRouteImport } from './routes/_app/cashier/orders.$id'
 
+const RestaurantInactiveRoute = RestaurantInactiveRouteImport.update({
+  id: '/restaurant-inactive',
+  path: '/restaurant-inactive',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PendingRoute = PendingRouteImport.update({
   id: '/pending',
   path: '/pending',
@@ -142,6 +148,7 @@ export interface FileRoutesByFullPath {
   '/demo': typeof DemoRoute
   '/login': typeof LoginRoute
   '/pending': typeof PendingRoute
+  '/restaurant-inactive': typeof RestaurantInactiveRoute
   '/admin/inventory': typeof AppAdminInventoryRoute
   '/admin/menu': typeof AppAdminMenuRoute
   '/admin/reports': typeof AppAdminReportsRoute
@@ -164,6 +171,7 @@ export interface FileRoutesByTo {
   '/demo': typeof DemoRoute
   '/login': typeof LoginRoute
   '/pending': typeof PendingRoute
+  '/restaurant-inactive': typeof RestaurantInactiveRoute
   '/admin/inventory': typeof AppAdminInventoryRoute
   '/admin/menu': typeof AppAdminMenuRoute
   '/admin/reports': typeof AppAdminReportsRoute
@@ -188,6 +196,7 @@ export interface FileRoutesById {
   '/demo': typeof DemoRoute
   '/login': typeof LoginRoute
   '/pending': typeof PendingRoute
+  '/restaurant-inactive': typeof RestaurantInactiveRoute
   '/_app/admin/inventory': typeof AppAdminInventoryRoute
   '/_app/admin/menu': typeof AppAdminMenuRoute
   '/_app/admin/reports': typeof AppAdminReportsRoute
@@ -212,6 +221,7 @@ export interface FileRouteTypes {
     | '/demo'
     | '/login'
     | '/pending'
+    | '/restaurant-inactive'
     | '/admin/inventory'
     | '/admin/menu'
     | '/admin/reports'
@@ -234,6 +244,7 @@ export interface FileRouteTypes {
     | '/demo'
     | '/login'
     | '/pending'
+    | '/restaurant-inactive'
     | '/admin/inventory'
     | '/admin/menu'
     | '/admin/reports'
@@ -257,6 +268,7 @@ export interface FileRouteTypes {
     | '/demo'
     | '/login'
     | '/pending'
+    | '/restaurant-inactive'
     | '/_app/admin/inventory'
     | '/_app/admin/menu'
     | '/_app/admin/reports'
@@ -281,10 +293,18 @@ export interface RootRouteChildren {
   DemoRoute: typeof DemoRoute
   LoginRoute: typeof LoginRoute
   PendingRoute: typeof PendingRoute
+  RestaurantInactiveRoute: typeof RestaurantInactiveRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/restaurant-inactive': {
+      id: '/restaurant-inactive'
+      path: '/restaurant-inactive'
+      fullPath: '/restaurant-inactive'
+      preLoaderRoute: typeof RestaurantInactiveRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/pending': {
       id: '/pending'
       path: '/pending'
@@ -494,6 +514,7 @@ const rootRouteChildren: RootRouteChildren = {
   DemoRoute: DemoRoute,
   LoginRoute: LoginRoute,
   PendingRoute: PendingRoute,
+  RestaurantInactiveRoute: RestaurantInactiveRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
