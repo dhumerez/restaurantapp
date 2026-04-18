@@ -66,6 +66,7 @@ export const restaurants = pgTable("restaurants", {
   taxRate: decimal("tax_rate", { precision: 5, scale: 2 }).notNull().default("0.00"),
   status: varchar("status", { length: 20 }).notNull().default("active")
     .$type<"active" | "trial" | "suspended" | "inactive" | "demo">(),
+  subscriptionTier: text("subscription_tier").notNull().default("free"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });

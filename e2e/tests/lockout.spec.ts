@@ -1,8 +1,20 @@
 import { test, expect, chromium } from "@playwright/test";
 import path from "path";
+import { execSync } from "child_process";
 
 const STORAGE_DIR = path.join(__dirname, "..", "test-results", "storage");
 const BASE = (process.env.BASE_URL || "http://localhost:5173").replace(/\/?$/, "");
+
+// Direct SQL because the superadmin API enum is ["active","trial","suspended","inactive"] —
+// "demo" is a seed-only status and the auth.demo.create flow specifically looks up
+// a restaurant with status='demo'. If we restore to anything else, auth.spec's demo-role
+// tests break on the next run.
+function restoreDemoStatus() {
+  execSync(
+    `docker compose exec -T postgres psql -U postgres -d restaurant -c "UPDATE restaurants SET status = 'demo' WHERE name = 'Demo Restaurant';"`,
+    { stdio: "ignore" }
+  );
+}
 
 test.describe.serial("Restaurant inactive lockout", () => {
   test("admin is redirected to /restaurant-inactive when demo restaurant is inactive", async () => {
@@ -34,12 +46,9 @@ test.describe.serial("Restaurant inactive lockout", () => {
       await expect(adminPage.getByText(/\+1 555 0001/i)).toBeVisible();
       await adminCtx.close();
     } finally {
-      // 3) Cleanup: restore demo status so other specs continue to pass
-      await saPage.goto(`${BASE}/platform/restaurants`);
-      await row.locator("select").selectOption("demo");
-      await saPage.waitForTimeout(500);
       await saCtx.close();
       await browser.close();
+      restoreDemoStatus();
     }
   });
 });

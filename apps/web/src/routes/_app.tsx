@@ -40,9 +40,10 @@ export const Route = createFileRoute("/_app")({
       );
       if (res.ok) {
         const payload = await res.json();
-        const status = payload?.[0]?.result?.data?.json?.restaurantStatus;
+        const data = payload?.[0]?.result?.data;
+        const status = data?.json?.restaurantStatus ?? data?.restaurantStatus;
         const ALLOWED = new Set(["active", "trial", "demo"]);
-        if (status === null || !ALLOWED.has(status)) {
+        if (!status || !ALLOWED.has(status)) {
           throw redirect({ to: "/restaurant-inactive" });
         }
       }

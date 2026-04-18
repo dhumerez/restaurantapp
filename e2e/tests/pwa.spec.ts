@@ -2,9 +2,17 @@ import { test, expect, devices } from "@playwright/test";
 
 const BASE = process.env.BASE_URL || "http://localhost:5173";
 
+// vite-plugin-pwa has `devOptions.enabled: false`, so manifest.webmanifest,
+// sw.js, registerSW.js and the <link rel="manifest"> injection only exist
+// against a production build. Opt in with PWA_PROD_BUILD=1 when running e2e
+// against `pnpm -F web build && pnpm -F web preview`.
+const PROD_BUILD = process.env.PWA_PROD_BUILD === "1";
+
 // ─── Manifest & Service Worker ────────────────────────────────────────────────
 
 test.describe("PWA – manifest", () => {
+  test.skip(!PROD_BUILD, "requires a production build (VitePWA devOptions disabled)");
+
   test("manifest.webmanifest is served with correct headers", async ({
     request,
   }) => {
@@ -61,6 +69,7 @@ test.describe("PWA – manifest", () => {
 
 test.describe("PWA – HTML meta tags", () => {
   test("index.html has manifest link", async ({ page }) => {
+    test.skip(!PROD_BUILD, "VitePWA injects <link rel=manifest> only in prod build");
     await page.goto(BASE);
     const manifest = await page.$('link[rel="manifest"]');
     expect(manifest).not.toBeNull();

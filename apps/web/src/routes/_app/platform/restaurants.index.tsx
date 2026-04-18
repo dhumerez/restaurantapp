@@ -2,7 +2,7 @@ import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { trpc } from "../../../trpc.js";
 
-export const Route = createFileRoute("/_app/platform/restaurants")({
+export const Route = createFileRoute("/_app/platform/restaurants/")({
   component: PlatformRestaurantsPage,
 });
 

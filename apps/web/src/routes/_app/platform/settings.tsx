@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { trpc } from "../../../trpc.js";
 
@@ -8,17 +8,32 @@ export const Route = createFileRoute("/_app/platform/settings")({
 
 function PlatformSettingsPage() {
   const utils = trpc.useUtils();
-  const { data } = trpc.superadmin.settings.get.useQuery();
+  const { data, isLoading } = trpc.superadmin.settings.get.useQuery();
   const update = trpc.superadmin.settings.update.useMutation({
     onSuccess: () => utils.superadmin.settings.get.invalidate(),
   });
 
-  const [form, setForm] = useState({ contactEmail: "", contactPhone: "" });
   const [saved, setSaved] = useState(false);
 
-  useEffect(() => {
-    if (data) setForm({ contactEmail: data.contactEmail, contactPhone: data.contactPhone });
-  }, [data]);
+  if (isLoading || !data) {
+    return <div className="max-w-md text-muted">Cargando…</div>;
+  }
+
+  return <SettingsForm initial={data} update={update} saved={saved} setSaved={setSaved} />;
+}
+
+function SettingsForm({
+  initial,
+  update,
+  saved,
+  setSaved,
+}: {
+  initial: { contactEmail: string; contactPhone: string };
+  update: ReturnType<typeof trpc.superadmin.settings.update.useMutation>;
+  saved: boolean;
+  setSaved: (v: boolean) => void;
+}) {
+  const [form, setForm] = useState(initial);
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();

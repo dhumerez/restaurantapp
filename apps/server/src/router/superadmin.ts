@@ -1,8 +1,9 @@
 import { z } from "zod";
-import { and, count, eq, gte, isNull } from "drizzle-orm";
+import { and, count, desc, eq, gte, isNull } from "drizzle-orm";
 import { router, superadminProcedure } from "../trpc/trpc.js";
 import { restaurants, user, platformSettings, tables, menuItems, orders } from "@restaurant/db";
 import { TRPCError } from "@trpc/server";
+import { auth } from "../lib/auth.js";
 
 export const superadminRouter = router({
   restaurants: router({
@@ -16,7 +17,7 @@ export const superadminRouter = router({
         return restaurant;
       }),
     update: superadminProcedure
-      .input(z.object({ id: z.string().uuid(), status: z.enum(["active","trial","suspended","inactive"]).optional(), name: z.string().min(1).optional(), taxRate: z.string().optional() }))
+      .input(z.object({ id: z.string().uuid(), status: z.enum(["active","trial","suspended","inactive"]).optional(), name: z.string().min(1).optional(), taxRate: z.string().optional(), subscriptionTier: z.enum(["free","subscribed","allaccess"]).optional() }))
       .mutation(async ({ ctx, input }) => {
         const { id, ...data } = input;
         const [updated] = await ctx.db.update(restaurants).set({ ...data, updatedAt: new Date() }).where(eq(restaurants.id, id)).returning();
@@ -54,6 +55,147 @@ export const superadminRouter = router({
           },
           staff,
         };
+      }),
+    assignAdmin: superadminProcedure
+      .input(
+        z.discriminatedUnion("mode", [
+          z.object({
+            restaurantId: z.string().uuid(),
+            mode: z.literal("existing"),
+            userId: z.string(),
+          }),
+          z.object({
+            restaurantId: z.string().uuid(),
+            mode: z.literal("new"),
+            email: z.string().email(),
+            name: z.string().min(1),
+            password: z.string().min(8),
+          }),
+        ])
+      )
+      .mutation(async ({ ctx, input }) => {
+        // Ensure restaurant exists
+        const restaurant = await ctx.db.query.restaurants.findFirst({
+          where: eq(restaurants.id, input.restaurantId),
+        });
+        if (!restaurant) throw new TRPCError({ code: "NOT_FOUND", message: "Restaurant not found" });
+
+        if (input.mode === "existing") {
+          // Ensure user exists
+          const existing = await ctx.db.query.user.findFirst({
+            where: eq(user.id, input.userId),
+          });
+          if (!existing) throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
+
+          const [patched] = await ctx.db
+            .update(user)
+            .set({ role: "admin", restaurantId: input.restaurantId, isActive: true, emailVerified: true, updatedAt: new Date() })
+            .where(eq(user.id, input.userId))
+            .returning();
+          return patched;
+        } else {
+          // Email conflict pre-check
+          const conflict = await ctx.db.query.user.findFirst({
+            where: eq(user.email, input.email),
+          });
+          if (conflict) throw new TRPCError({ code: "CONFLICT", message: "Email already registered" });
+
+          // Create via Better Auth
+          await auth.api.signUpEmail({ body: { email: input.email, name: input.name, password: input.password } });
+
+          // Look up the created user
+          const created = await ctx.db.query.user.findFirst({
+            where: eq(user.email, input.email),
+          });
+          if (!created) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "User creation failed" });
+
+          // Patch and return
+          const [patched] = await ctx.db
+            .update(user)
+            .set({ role: "admin", restaurantId: input.restaurantId, isActive: true, emailVerified: true, updatedAt: new Date() })
+            .where(eq(user.id, created.id))
+            .returning();
+          return patched;
+        }
+      }),
+  }),
+  users: router({
+    list: superadminProcedure.query(async ({ ctx }) => {
+      const rows = await ctx.db
+        .select({
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          isActive: user.isActive,
+          createdAt: user.createdAt,
+          restaurantId: restaurants.id,
+          restaurantName: restaurants.name,
+          restaurantSlug: restaurants.slug,
+          restaurantStatus: restaurants.status,
+          restaurantTier: restaurants.subscriptionTier,
+        })
+        .from(user)
+        .leftJoin(restaurants, eq(user.restaurantId, restaurants.id))
+        .orderBy(desc(user.createdAt));
+
+      return rows.map((row) => {
+        const { restaurantId, restaurantName, restaurantSlug, restaurantStatus, restaurantTier, ...userFields } = row;
+        return {
+          ...userFields,
+          restaurant: restaurantId
+            ? { id: restaurantId, name: restaurantName, slug: restaurantSlug, status: restaurantStatus, subscriptionTier: restaurantTier }
+            : null,
+        };
+      });
+    }),
+    create: superadminProcedure
+      .input(
+        z.object({
+          email: z.string().email(),
+          name: z.string().min(1),
+          password: z.string().min(8),
+          role: z.enum(["admin", "waiter", "kitchen", "cashier", "superadmin"]).optional(),
+          restaurantId: z.string().uuid().optional(),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        // Email conflict pre-check
+        const conflict = await ctx.db.query.user.findFirst({
+          where: eq(user.email, input.email),
+        });
+        if (conflict) throw new TRPCError({ code: "CONFLICT", message: "Email already registered" });
+
+        // Create via Better Auth
+        await auth.api.signUpEmail({ body: { email: input.email, name: input.name, password: input.password } });
+
+        // Look up the created user
+        const created = await ctx.db.query.user.findFirst({
+          where: eq(user.email, input.email),
+        });
+        if (!created) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "User creation failed" });
+
+        // If role is provided, patch the user
+        if (input.role !== undefined) {
+          const patch: Record<string, unknown> = {
+            role: input.role,
+            isActive: true,
+            emailVerified: true,
+            updatedAt: new Date(),
+          };
+          if (input.role !== "superadmin" && input.restaurantId !== undefined) {
+            patch.restaurantId = input.restaurantId;
+          }
+          const [patched] = await ctx.db
+            .update(user)
+            .set(patch)
+            .where(eq(user.id, created.id))
+            .returning();
+          return patched;
+        }
+
+        // No role provided: return the pending user as-is
+        return created;
       }),
   }),
   pendingUsers: router({
