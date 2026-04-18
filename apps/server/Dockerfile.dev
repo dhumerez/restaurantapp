@@ -6,4 +6,9 @@ COPY apps/server/package.json ./apps/server/
 COPY packages/db/package.json ./packages/db/
 RUN pnpm install --frozen-lockfile
 COPY . .
+# apps/server imports @restaurant/db whose `main` points at dist/index.js.
+# .dockerignore strips **/dist so host artifacts aren't copied — build inside
+# the image to avoid the "Cannot find module '@restaurant/db/dist/index.js'"
+# crash on first boot.
+RUN pnpm -F @restaurant/db build
 CMD ["tsx", "watch", "apps/server/src/index.ts"]
