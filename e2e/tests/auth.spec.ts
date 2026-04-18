@@ -52,7 +52,10 @@ test.describe("Authentication", () => {
     await login(page, "admin@demo.com", "password123");
     await expect(page).toHaveURL(/\/admin/, { timeout: 10000 });
 
-    await page.getByText(/cerrar sesión/i).click();
+    // TanStack Router Devtools (dev-only) overlays the sidebar and intercepts pointer
+    // events, so even `click({force})` lands on the devtools. Dispatch the click event
+    // directly on the sidebar's "Cerrar sesión" button to bypass pointer routing.
+    await page.locator("aside").getByRole("button", { name: /cerrar sesión/i }).dispatchEvent("click");
     await expect(page).toHaveURL(/\/login/, { timeout: 5000 });
 
     // Try to navigate back — should redirect to login

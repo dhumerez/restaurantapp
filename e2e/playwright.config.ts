@@ -26,7 +26,7 @@ export default defineConfig({
     },
     {
       name: "admin",
-      testMatch: /admin\.spec\.ts/,
+      testMatch: /(^|[\\/])admin\.spec\.ts/,
       dependencies: ["setup"],
       use: {
         ...devices["Desktop Chrome"],

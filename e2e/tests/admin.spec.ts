@@ -52,8 +52,8 @@ test.describe("Admin Flow", () => {
     await page.goto("admin/staff");
     await expect(page).toHaveURL(/\/admin\/staff/);
     // Seed creates admin, waiter, kitchen, cashier — at least these emails
-    await expect(page.getByText(/admin@demo\.com/i)).toBeVisible({ timeout: 5000 });
-    await expect(page.getByText(/waiter@demo\.com/i)).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText(/admin@demo\.com/i).first()).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText(/waiter@demo\.com/i).first()).toBeVisible({ timeout: 5000 });
   });
 
   test("can navigate to table management", async ({ page }) => {

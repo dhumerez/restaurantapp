@@ -58,7 +58,7 @@ test.describe("Superadmin platform", () => {
 
     // Modal closes when heading disappears, and the new email appears in the admins section
     await expect(page.getByRole("heading", { name: /^asignar admin$/i })).not.toBeVisible({ timeout: 10000 });
-    await expect(page.getByText(email)).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText(email).first()).toBeVisible({ timeout: 10000 });
   });
 
   test("users page: create pending user and verify it appears in filtered list", async ({ page }) => {
