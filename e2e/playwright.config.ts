@@ -97,5 +97,12 @@ export default defineConfig({
       // states are loaded inside the test, so no project-level storageState.
       use: { ...devices["Desktop Chrome"] },
     },
+    {
+      name: "smoke",
+      testMatch: /smoke\.spec\.ts/,
+      // No setup dep and no storage state — suite is read-only and safe to
+      // run against prod. Point at prod with BASE_URL=https://humerez.dev/restaurant.
+      use: { ...devices["Desktop Chrome"] },
+    },
   ],
 });
