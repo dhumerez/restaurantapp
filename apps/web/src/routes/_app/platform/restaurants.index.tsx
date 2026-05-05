@@ -49,7 +49,7 @@ function PlatformRestaurantsPage() {
         slug: form.slug,
         address: form.address || undefined,
         currency: form.currency,
-        taxRate: Number(form.taxRate),
+        taxRate: form.taxRate,
       },
       {
         onSuccess: () => {
