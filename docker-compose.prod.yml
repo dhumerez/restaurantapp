@@ -47,8 +47,8 @@ services:
       DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/restaurant
       REDIS_URL: redis://redis:6379
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
-      BETTER_AUTH_URL: https://humerez.dev
-      CORS_ORIGIN: https://humerez.dev
+      BETTER_AUTH_URL: https://restaurant.humerez.dev
+      CORS_ORIGIN: https://restaurant.humerez.dev
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
       RESEND_API_KEY: ${RESEND_API_KEY:-}
@@ -63,12 +63,11 @@ services:
       VAPID_SUBJECT: ${VAPID_SUBJECT:-mailto:admin@humerez.dev}
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.restaurant-api.rule=Host(`humerez.dev`) && PathPrefix(`/restaurant/api`)"
+      - "traefik.http.routers.restaurant-api.rule=Host(`restaurant.humerez.dev`) && PathPrefix(`/api`)"
       - "traefik.http.routers.restaurant-api.entrypoints=websecure"
       - "traefik.http.routers.restaurant-api.tls=true"
       - "traefik.http.routers.restaurant-api.tls.certresolver=letsencrypt"
-      - "traefik.http.middlewares.restaurant-api-strip.stripprefix.prefixes=/restaurant"
-      - "traefik.http.routers.restaurant-api.middlewares=restaurant-api-strip"
+      - "traefik.http.routers.restaurant-api.priority=20"
       - "traefik.http.services.restaurant-api.loadbalancer.server.port=3000"
       - "traefik.docker.network=web"
     networks:
@@ -80,22 +79,29 @@ services:
       context: .
       dockerfile: apps/web/Dockerfile
       args:
-        VITE_API_URL: https://humerez.dev/restaurant
-        VITE_BASE_PATH: /restaurant/
+        # Served at the root of its own subdomain (restaurant.humerez.dev): the
+        # SPA calls /api/* same-origin (auth client → ${VITE_API_URL}/api/auth)
+        # and Vite assets resolve from /.
+        VITE_API_URL: ""
+        VITE_BASE_PATH: /
         VITE_VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY}
     restart: always
     depends_on:
       - server
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.restaurant-web.rule=Host(`humerez.dev`) && PathPrefix(`/restaurant`)"
+      - "traefik.http.routers.restaurant-web.rule=Host(`restaurant.humerez.dev`)"
       - "traefik.http.routers.restaurant-web.entrypoints=websecure"
       - "traefik.http.routers.restaurant-web.tls=true"
       - "traefik.http.routers.restaurant-web.tls.certresolver=letsencrypt"
       - "traefik.http.routers.restaurant-web.priority=10"
-      - "traefik.http.middlewares.restaurant-web-strip.stripprefix.prefixes=/restaurant"
-      - "traefik.http.routers.restaurant-web.middlewares=restaurant-web-strip"
       - "traefik.http.services.restaurant-web.loadbalancer.server.port=80"
+      # http -> https redirect for the host.
+      - "traefik.http.routers.restaurant-web-http.rule=Host(`restaurant.humerez.dev`)"
+      - "traefik.http.routers.restaurant-web-http.entrypoints=web"
+      - "traefik.http.routers.restaurant-web-http.middlewares=restaurant-redirect"
+      - "traefik.http.middlewares.restaurant-redirect.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.restaurant-redirect.redirectscheme.permanent=true"
       - "traefik.docker.network=web"
     networks:
       - web
