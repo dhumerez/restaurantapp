@@ -79,10 +79,11 @@ services:
       context: .
       dockerfile: apps/web/Dockerfile
       args:
-        # Served at the root of its own subdomain (restaurant.humerez.dev): the
-        # SPA calls /api/* same-origin (auth client → ${VITE_API_URL}/api/auth)
-        # and Vite assets resolve from /.
-        VITE_API_URL: ""
+        # Absolute origin URL (NOT empty): the auth client builds
+        # `new URL(`${VITE_API_URL}/api/auth`)` which throws on a relative path,
+        # and the tRPC WS link needs an absolute origin to derive wss://. Same
+        # origin as the web, so /api/* still routes here. Assets resolve from /.
+        VITE_API_URL: https://restaurant.humerez.dev
         VITE_BASE_PATH: /
         VITE_VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY}
     restart: always
